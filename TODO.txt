@@ -1,0 +1,20 @@
+
+
+
+div.m1tvLive-games-list div.VueGame // список игр
+    .VueGame-stat .VueGame-stat-one-meta div:nth-child(2) // div с иной о времени игры. Нужно с 20 минут до 0
+    .VueGame-stat .VueGame-stat-one-title span._title // игнорить записи, в которых текст внутри элемента "Перетасовка"
+    .VueGame-players > div // player
+        .nick a // link to player
+
+
+кнопка load:
+.m1tvLive-games-list .loadBlock // если некуда мотать - элемент исчезнет
+
+.m1tvLive-games-list .loadBlock[mnpl-status="loading"] // значит результаты загружаются
+
+
+
+
+// открыть d новом табе
+page.click(selector, {button: 'middle', delay: 108});

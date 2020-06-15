@@ -1,0 +1,19 @@
+{
+  "name": "monopoly",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "awaiting": "^3.0.0",
+    "ghost-cursor": "^1.0.3",
+    "puppeteer": "^3.3.0",
+    "puppeteer-extra": "^3.1.9",
+    "puppeteer-extra-plugin-stealth": "^2.4.9",
+    "uuid": "^8.1.0"
+  }
+}
