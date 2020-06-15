@@ -1,25 +1,21 @@
 
 const a = require('awaiting');
-const {clear, rand, newPage} = require('./../helpers');
+const helpers = require('./../helpers');
 const uuidv4 = require('uuid').v4;
-const scrollPageToBottom = require('puppeteer-autoscroll-down');
 
 module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
     if (! page && orBrowser) {
-        page = await newPage(orBrowser);
+        page = await helpers.newPage(orBrowser);
     }
     
     //
     // Check if it's on market already
     //
     await page.goto('https://monopoly-one.com/market/my', {referer: 'https://monopoly-one.com/market'});     
-    await a.delay(2000);         
-
-    let loaded1 = false;
-    while (! loaded1) {
-        await a.delay(500);
-        loaded1 = await page.$('.market-list') && !(await page.$('.market-list.processing'));
-    }
+    await page.waitForSelector('.market-list');
+    await page.waitForSelector('.market-list.processing');
+    await helpers.waitSelectorDisappears(page, '.market-list.processing');
+    
 
     const korobochka5El = await page.$(`[style*="dices-5.png"]`);
     let result = '';
@@ -49,7 +45,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
             }
         }
 
-
+        console.log('REMOVE SUCCESS...');
         result = 'ANTI-BAN: ITEM REMOVED FROM MARKET';
     } else {
         console.log('NOT ON MARKET yet - adding...');
@@ -67,7 +63,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
         await page.waitForSelector('[style*="dices-5.png"]');
         await page._cursor.click('[style*="dices-5.png"]');
         await a.delay(400);
-        await scrollPageToBottom(page);
+        await helpers.scrollPageToBottom(page);
         
         await page.waitForSelector('.InventoryHelper-body-buttons div:nth-child(2)');
         await page._cursor.click('.InventoryHelper-body-buttons div:nth-child(2)');
@@ -75,8 +71,8 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
         
 
         await page._cursor.click('.inventory-marketSell-costs-value input');
-        await clear(page, '.inventory-marketSell-costs-value input');
-        const priceToType = rand(450, 500).toString();
+        await helpers.clear(page, '.inventory-marketSell-costs-value input');
+        const priceToType = helpers.rand(450, 500).toString();
         await page.type('.inventory-marketSell-costs-value input', priceToType, {delay: 60});
         await a.delay(1500);
 
@@ -94,13 +90,11 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
                 }
             }
         }
-
+        console.log('ADD SUCCESS...');
         result = 'ANTI-BAN: ITEM ADDED TO MARKET';
     }
-    setTimeout(() => {
-        page.close();
-    }, 2000);
-
+    await a.delay(3000);
+    
     return result;
 }
 

@@ -10,7 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "awaiting": "^3.0.0",
-    "ghost-cursor": "^1.0.3",
+    "ghost-cursor": "github:airs0urce/ghost-cursor",
     "puppeteer": "^3.3.0",
     "puppeteer-autoscroll-down": "^0.1.5",
     "puppeteer-extra": "^3.1.9",

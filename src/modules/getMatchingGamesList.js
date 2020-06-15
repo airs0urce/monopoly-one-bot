@@ -1,30 +1,31 @@
-const {clear, rand, newPage} = require('./../helpers');
+
+const helpers = require('./../helpers');
 const config = require('./../config');
 const a = require('awaiting');
-const scrollPageToBottom = require('puppeteer-autoscroll-down');
 
 module.exports = async function getMatchingGamesList(page, orBrowser) {
     
     if (! page && orBrowser) {
-        page = await newPage(orBrowser);
+        page = await helpers.newPage(orBrowser);
     }
 
     //
     // Go to M1TV page
     //
-    await page._cursor.click('[href="/m1tv"]');
-    await page.waitForNavigation({waitUntil: 'load'});
-    await a.delay(4000);
-
+    await page.goto('https://monopoly-one.com/m1tv', {referer: 'https://monopoly-one.com/'});
+    await page.waitForSelector('.m1tvLive-games-list.processing');
+    await helpers.waitSelectorDisappears(page, '.m1tvLive-games-list.processing');
 
     //
     // Load more results until page finished
     //
-    await scrollPageToBottom(page);
+    await helpers.scrollPageToBottom(page);
     let loadSuccess = false;
     while (loadSuccess = await loadMoreResults(page)) {
-        await scrollPageToBottom(page);
-        await a.delay(rand(1000, 1400));
+        console.log('before scroll');
+        await helpers.scrollPageToBottom(page);
+        console.log('after scroll');
+        await a.delay(helpers.rand(100, 150));
     }
     
 
@@ -112,15 +113,14 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
 }
 
 async function loadMoreResults(page) {
-    const loadingBtn = await page.$('.m1tvLive-games-list .loadBlock')
+    const loadingBtn = await page.$('.loadBlock')
     if (!loadingBtn) {
         return false;
     }
-
-    await page._cursor.click('.m1tvLive-games-list .loadBlock');
-    await a.delay(1000);
+    await page._cursor.click('.loadBlock');
+    await a.delay(500);
     let loadingInProgressEl = null;
-    while (loadingInProgressEl = await page.$('.m1tvLive-games-list .loadBlock[mnpl-status="loading"]')) {
+    while (loadingInProgressEl = await page.$('.loadBlock[mnpl-status="loading"]')) {
         // still loading, wait
         await a.delay(1000);
     }

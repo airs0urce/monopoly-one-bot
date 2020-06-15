@@ -1,21 +1,20 @@
 
 const a = require('awaiting');
-const {clear, rand, newPage} = require('./../helpers');
+const helpers = require('./../helpers');
 const config = require('./../config');
 const uuidv4 = require('uuid').v4;
-const scrollPageToBottom = require('puppeteer-autoscroll-down');
 const url = require('url');
 
 module.exports = async function loginMonopoly(page, orBrowser) {
     if (! page && orBrowser) {
-        page = await newPage(orBrowser);
+        page = await helpers.newPage(orBrowser);
     }
 
     //
     // AUTH
     //
     await page.goto('https://monopoly-one.com/auth?return=Lw==', {referer: 'https://monopoly-one.com/'})
-    await page.setViewport({ width: rand(1393, 1500), height: rand(600, 800) });
+    await page.setViewport({ width: helpers.rand(1393, 1500), height: helpers.rand(600, 800) });
 
     let loginPageReady = false;  
     let paramsExists = false;

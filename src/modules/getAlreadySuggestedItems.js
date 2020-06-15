@@ -1,13 +1,12 @@
 
 const a = require('awaiting');
-const {clear, rand, newPage} = require('./../helpers');
+const helpers = require('./../helpers');
 const uuidv4 = require('uuid').v4;
-const scrollPageToBottom = require('puppeteer-autoscroll-down');
 
 module.exports = async function getAlreadySuggestedCards(page, orBrowser) {
 
     if (! page && orBrowser) {
-        page = await newPage(orBrowser);
+        page = await helpers.newPage(orBrowser);
     }
 
     //
@@ -18,24 +17,17 @@ module.exports = async function getAlreadySuggestedCards(page, orBrowser) {
     await a.delay(500);
     await page.click('[href="/trades/outgoing"]');
     await page.waitForSelector('.trades-main-list.processing');
-    
-    while (true) {
-        await a.delay(300);
-        const stillProcessing = !!(await page.$('.trades-main-list.processing'));
-        if (! stillProcessing) {
-            break;
-        }
-    }
+    await helpers.waitSelectorDisappears(page, '.trades-main-list.processing');
     await a.delay(300);
 
     //
     // Load more results until page finished
     //
-    await scrollPageToBottom(page);
+    await helpers.scrollPageToBottom(page);
     let loadSuccess = false;
     while (loadSuccess = await loadMoreResults(page)) {
-        await scrollPageToBottom(page);
-        await a.delay(rand(1000, 1400));
+        await helpers.scrollPageToBottom(page);
+        await a.delay(helpers.rand(1000, 1400));
     }
 
     // 
