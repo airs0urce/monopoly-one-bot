@@ -22,7 +22,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
     }
 
     const korobochka5El = await page.$(`[style*="dices-5.png"]`);
-
+    let result = '';
     if (korobochka5El) {
         console.log('ALREADY ON MARKET - removing...');
         //
@@ -45,15 +45,12 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
                 });
                 if (text.includes('Предмет снят с продажи')) {
                     finishedRemoving = true;
-                    console.log('SUCCESS: Remove from market');
                 }
             }
         }
 
 
-        await a.delay(3000)
-        await page.close();
-
+        result = 'ANTI-BAN: ITEM REMOVED FROM MARKET';
     } else {
         console.log('NOT ON MARKET yet - adding...');
         //
@@ -69,16 +66,14 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
         
         await page.waitForSelector('[style*="dices-5.png"]');
         await page._cursor.click('[style*="dices-5.png"]');
-        
+        await a.delay(400);
         await scrollPageToBottom(page);
-        await a.delay(300);
         
-
-
         await page.waitForSelector('.InventoryHelper-body-buttons div:nth-child(2)');
         await page._cursor.click('.InventoryHelper-body-buttons div:nth-child(2)');
-        await a.delay(2000);
+        await a.delay(1000);
         
+
         await page._cursor.click('.inventory-marketSell-costs-value input');
         await clear(page, '.inventory-marketSell-costs-value input');
         const priceToType = rand(450, 500).toString();
@@ -96,13 +91,16 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
                 });
                 if (text.includes('Предмет успешно выставлен на продажу')) {
                     finishedPuttingOnMarket = true;
-                    console.log('SUCCESS: Added to market');
                 }
             }
         }
-        
-        await a.delay(3000)
-        await page.close();
+
+        result = 'ANTI-BAN: ITEM ADDED TO MARKET';
     }
+    setTimeout(() => {
+        page.close();
+    }, 2000);
+
+    return result;
 }
 

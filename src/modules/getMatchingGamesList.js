@@ -1,6 +1,5 @@
 const {clear, rand, newPage} = require('./../helpers');
 const config = require('./../config');
-const url = require('url');
 const a = require('awaiting');
 const scrollPageToBottom = require('puppeteer-autoscroll-down');
 

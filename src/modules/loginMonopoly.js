@@ -1,8 +1,10 @@
 
 const a = require('awaiting');
 const {clear, rand, newPage} = require('./../helpers');
+const config = require('./../config');
 const uuidv4 = require('uuid').v4;
 const scrollPageToBottom = require('puppeteer-autoscroll-down');
+const url = require('url');
 
 module.exports = async function loginMonopoly(page, orBrowser) {
     if (! page && orBrowser) {
@@ -19,7 +21,16 @@ module.exports = async function loginMonopoly(page, orBrowser) {
     let paramsExists = false;
     while (! loginPageReady) {
         const queryObject = url.parse(page.url(), true).query;
-        const newParamsExists = Object.keys(queryObject).length > 0;
+        
+        const params = Object.keys(queryObject);
+        
+        // ignore "return parameter"
+        var index = params.indexOf('return');
+        if (index !== -1) {
+            params.splice(index, 1);
+        }
+
+        const newParamsExists = params.length > 0;
         if (newParamsExists == false && newParamsExists != paramsExists) {
             break;
         }

@@ -25,11 +25,21 @@ let browser;
 
     let page = await loginMonopoly(null, browser);
 
-    // await getAlreadySuggestedItems(page);
-
+    // const suggestedItems = await getAlreadySuggestedItems(null, browser);
     // await addOrRemoveFromMarket(browser);
     // const games = await getMatchingGamesList(browser);
     // console.log('games:', util.inspect(games, {depth: 10}));
+
+
+    const results = await Promise.all([
+        // getAlreadySuggestedItems(null, browser),
+        addOrRemoveFromMarket(null, browser),
+        // getMatchingGamesList(null, browser),
+    ]);
+
+
+
+    console.log('results:', results);
     
     
 

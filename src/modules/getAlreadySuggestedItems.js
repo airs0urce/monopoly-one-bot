@@ -19,7 +19,7 @@ module.exports = async function getAlreadySuggestedCards(page, orBrowser) {
     await page.click('[href="/trades/outgoing"]');
     await page.waitForSelector('.trades-main-list.processing');
     
-    while (! loaded1) {
+    while (true) {
         await a.delay(300);
         const stillProcessing = !!(await page.$('.trades-main-list.processing'));
         if (! stillProcessing) {
