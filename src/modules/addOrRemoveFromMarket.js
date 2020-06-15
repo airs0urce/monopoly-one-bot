@@ -1,24 +1,18 @@
 
 const a = require('awaiting');
-const {clear, rand} = require('./helpers');
-const installMouseHelper = require('./install-mouse-helper.js').installMouseHelper;
-const createCursor = require("ghost-cursor").createCursor;
+const {clear, rand, newPage} = require('./../helpers');
 const uuidv4 = require('uuid').v4;
 const scrollPageToBottom = require('puppeteer-autoscroll-down');
 
-module.exports = async function addOrRemoveFromMarket(browser) {
-    const page = await browser.newPage();
-    await installMouseHelper(page);
-
-    page.setDefaultNavigationTimeout(120 * 1000);
-    page.setDefaultTimeout(120 * 1000);
-    const pageCursor = createCursor(page);
-
-
+module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
+    if (! page && orBrowser) {
+        page = await newPage(orBrowser);
+    }
+    
     //
     // Check if it's on market already
     //
-    await page.goto('https://monopoly-one.com/market/my');     
+    await page.goto('https://monopoly-one.com/market/my', {referer: 'https://monopoly-one.com/market'});     
     await a.delay(2000);         
 
     let loaded1 = false;
@@ -40,7 +34,7 @@ module.exports = async function addOrRemoveFromMarket(browser) {
             input.id = removeFromMarketButtonId;
         }, removeFromMarketButtonId);
         await a.delay(200);
-        await pageCursor.click('#' + removeFromMarketButtonId);
+        await page._cursor.click('#' + removeFromMarketButtonId);
 
         let finishedRemoving = false;
         while (! finishedRemoving) {
@@ -74,7 +68,7 @@ module.exports = async function addOrRemoveFromMarket(browser) {
 
         
         await page.waitForSelector('[style*="dices-5.png"]');
-        await pageCursor.click('[style*="dices-5.png"]');
+        await page._cursor.click('[style*="dices-5.png"]');
         
         await scrollPageToBottom(page);
         await a.delay(300);
@@ -82,16 +76,16 @@ module.exports = async function addOrRemoveFromMarket(browser) {
 
 
         await page.waitForSelector('.InventoryHelper-body-buttons div:nth-child(2)');
-        await pageCursor.click('.InventoryHelper-body-buttons div:nth-child(2)');
+        await page._cursor.click('.InventoryHelper-body-buttons div:nth-child(2)');
         await a.delay(2000);
         
-        await pageCursor.click('.inventory-marketSell-costs-value input');
+        await page._cursor.click('.inventory-marketSell-costs-value input');
         await clear(page, '.inventory-marketSell-costs-value input');
         const priceToType = rand(450, 500).toString();
         await page.type('.inventory-marketSell-costs-value input', priceToType, {delay: 60});
         await a.delay(1500);
 
-        await pageCursor.click('.vueDesignDialog-buttons button:nth-child(1)');
+        await page._cursor.click('.vueDesignDialog-buttons button:nth-child(1)');
 
         let finishedPuttingOnMarket = false;
         while (! finishedPuttingOnMarket) {

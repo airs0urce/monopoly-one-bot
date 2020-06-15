@@ -1,53 +1,19 @@
-const {clear, rand} = require('./helpers');
-const config = require('./config');
-const installMouseHelper = require('./install-mouse-helper.js').installMouseHelper;
+const {clear, rand, newPage} = require('./../helpers');
+const config = require('./../config');
 const url = require('url');
-const createCursor = require("ghost-cursor").createCursor;
 const a = require('awaiting');
 const scrollPageToBottom = require('puppeteer-autoscroll-down');
 
-module.exports = async function loginAndGetMatchingGamesList(browser) {
-    const page = await browser.newPage();
-    await installMouseHelper(page);
-    page.setDefaultNavigationTimeout(120 * 1000)
-    page.setDefaultTimeout(120 * 1000)
-
-    const pageCursor = createCursor(page);
-
-    //
-    // AUTH
-    //
-    await page.goto('https://monopoly-one.com/auth')
-    await page.setViewport({ width: rand(1393, 1500), height: rand(600, 800) });
-
-    let loginPageReady = false;  
-    let paramsExists = false;
-    while (! loginPageReady) {
-        const queryObject = url.parse(page.url(), true).query;
-        const newParamsExists = Object.keys(queryObject).length > 0;
-        if (newParamsExists == false && newParamsExists != paramsExists) {
-            break;
-        }
-        paramsExists = newParamsExists;
-        await a.delay(100);
+module.exports = async function getMatchingGamesList(page, orBrowser) {
+    
+    if (! page && orBrowser) {
+        page = await newPage(orBrowser);
     }
-    
-    await page.waitForSelector('#auth-form-email');
-    await a.delay(1000);
-    await pageCursor.click('#auth-form-email');
-    await page.type('#auth-form-email', config.monopoly_auth.username, {delay: 25}); // Types slower, like a user
-    await pageCursor.click('#auth-form-password');
-    await page.type('#auth-form-password', config.monopoly_auth.password, {delay: 30}); // Types slower, like a user
-    await a.delay(700);
 
-    await pageCursor.click('#auth-form [type="submit"]');
-    await page.waitForNavigation({waitUntil: 'load'});
-    await a.delay(700);
-    
     //
     // Go to M1TV page
     //
-    await pageCursor.click('[href="/m1tv"]');
+    await page._cursor.click('[href="/m1tv"]');
     await page.waitForNavigation({waitUntil: 'load'});
     await a.delay(4000);
 
@@ -59,7 +25,7 @@ module.exports = async function loginAndGetMatchingGamesList(browser) {
     let loadSuccess = false;
     while (loadSuccess = await loadMoreResults(page)) {
         await scrollPageToBottom(page);
-        await a.delay(rand(300, 500));
+        await a.delay(rand(1000, 1400));
     }
     
 
@@ -147,13 +113,12 @@ module.exports = async function loginAndGetMatchingGamesList(browser) {
 }
 
 async function loadMoreResults(page) {
-    const pageCursor = createCursor(page);
     const loadingBtn = await page.$('.m1tvLive-games-list .loadBlock')
     if (!loadingBtn) {
         return false;
     }
 
-    await pageCursor.click('.m1tvLive-games-list .loadBlock');
+    await page._cursor.click('.m1tvLive-games-list .loadBlock');
     await a.delay(1000);
     let loadingInProgressEl = null;
     while (loadingInProgressEl = await page.$('.m1tvLive-games-list .loadBlock[mnpl-status="loading"]')) {

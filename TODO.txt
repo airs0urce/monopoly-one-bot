@@ -35,17 +35,28 @@ thing.find('.thing-about > div') -> вщять innerText - это будет и�
 
 - Фильтруем свой инвентарь 
 
+'.trades-main-inventories-one:nth-child(1) ._filter [design-selecter-value="cards"]' // нажать на карточки 
+'.trades-main-inventories-one:nth-child(1) .trades-main-inventories-one-list div.tradesThing[mnpl-filter=1]' // все мои показанные items. будут только карточки
+
+
+- .... ДОРАБОТАТЬ
+
+
+- Отправить предложение обмена $('input[value="Отправить предложение"]')
+
+
+
+
+==================================
 // $('.trades-main-inventories-one:nth-child(1)').length - свой инвентарь
 // $('.trades-main-inventories-one:nth-child(2)').length - инвентарь юзера
 
-
-// await page.waitForSelector('.trades-main-inventories-one:nth-child(1)', {visible: true})
-
+https://monopoly-one.com/trades/new?to=14087
 
 
-
-
-
+ОБработать https://monopoly-one.com/trades/new?to=1798548
+Этот игрок принимает только подарочные трейды.
+Вы не можете запросить у него предметы.
 
 
 

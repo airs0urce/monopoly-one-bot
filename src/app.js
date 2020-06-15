@@ -5,8 +5,12 @@ const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin());
 const a = require('awaiting');
 
-const loginAndGetMatchingGamesList = require('./loginAndGetMatchingGamesList');
-const addOrRemoveFromMarket = require('./addOrRemoveFromMarket');
+const getMatchingGamesList = require('./modules/getMatchingGamesList');
+const addOrRemoveFromMarket = require('./modules/addOrRemoveFromMarket');
+const getAlreadySuggestedItems = require('./modules/getAlreadySuggestedItems');
+const loginMonopoly = require('./modules/loginMonopoly');
+
+
 
 let browser;
 
@@ -19,10 +23,16 @@ let browser;
         ]
     })
 
+    let page = await loginMonopoly(null, browser);
+
+    // await getAlreadySuggestedItems(page);
+
     // await addOrRemoveFromMarket(browser);
-    const games = await loginAndGetMatchingGamesList(browser);
-    console.log('games:', util.inspect(games, {depth: 10}));
+    // const games = await getMatchingGamesList(browser);
+    // console.log('games:', util.inspect(games, {depth: 10}));
     
+    
+
     // await browser.close()
 })();
 
