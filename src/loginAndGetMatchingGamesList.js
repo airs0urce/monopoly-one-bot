@@ -1,9 +1,10 @@
-const {autoScroll, clear, rand} = require('./helpers');
+const {clear, rand} = require('./helpers');
 const config = require('./config');
 const installMouseHelper = require('./install-mouse-helper.js').installMouseHelper;
 const url = require('url');
 const createCursor = require("ghost-cursor").createCursor;
 const a = require('awaiting');
+const scrollPageToBottom = require('puppeteer-autoscroll-down');
 
 module.exports = async function loginAndGetMatchingGamesList(browser) {
     const page = await browser.newPage();
@@ -54,12 +55,13 @@ module.exports = async function loginAndGetMatchingGamesList(browser) {
     //
     // Load more results until page finished
     //
-    const scrollInterval = autoScroll(page);
+    await scrollPageToBottom(page);
     let loadSuccess = false;
-    while (loadSuccess = await loadMoreResults(page, pageCursor)) {
-        await a.delay(3000);
+    while (loadSuccess = await loadMoreResults(page)) {
+        await scrollPageToBottom(page);
+        await a.delay(rand(300, 500));
     }
-    clearInterval(scrollInterval);
+    
 
     //
     // Parsing game list
@@ -144,7 +146,8 @@ module.exports = async function loginAndGetMatchingGamesList(browser) {
     return gameList;
 }
 
-async function loadMoreResults(page, pageCursor) {
+async function loadMoreResults(page) {
+    const pageCursor = createCursor(page);
     const loadingBtn = await page.$('.m1tvLive-games-list .loadBlock')
     if (!loadingBtn) {
         return false;

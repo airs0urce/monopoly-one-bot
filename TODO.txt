@@ -1,20 +1,61 @@
 
 
+как-то учитывать кому уже предложили обмен и не пытаться снова менять то что уже предложили.
 
-div.m1tvLive-games-list div.VueGame // список игр
-    .VueGame-stat .VueGame-stat-one-meta div:nth-child(2) // div с иной о времени игры. Нужно с 20 минут до 0
-    .VueGame-stat .VueGame-stat-one-title span._title // игнорить записи, в которых текст внутри элемента "Перетасовка"
-    .VueGame-players > div // player
-        .nick a // link to player
+-------------------------------------
+Страница профиля^
 
-
-кнопка load:
-.m1tvLive-games-list .loadBlock // если некуда мотать - элемент исчезнет
-
-.m1tvLive-games-list .loadBlock[mnpl-status="loading"] // значит результаты загружаются
+кол-во матчей:
+$('.profile-top-stat-list .profile-top-stat-list-one:nth-child(1) ._val') // innerText 
 
 
+Кнопка "Все" на профайле/ нажимать только если она есть
+.profile-body-inventory 
 
 
-// открыть d новом табе
-page.click(selector, {button: 'middle', delay: 108});
+- Есть ли items в инвентаре, проверка:
+
+ждем селектор '.emptylistmessage' (нет)
+или
+'.inventory-items.processing' (есть) -> когда исчезнет класс "processing" - страница загрузилась
+
+
+- далее взять весь список items в инвентаре. У каждого "картинка", "имя"
+
+thing = '.inventory-items > .thing'
+thing.find('.thing-image > div') -> взять аттрибут style и выдрать картинку (пример: style="background-image:url(https://cdn2.kirick.me/libs/monopoly/fields/brands/8_smartphones/one_plus.svg);")
+thing.find('.thing-about > div') -> вщять innerText - это будет имя. Например: "Король дуэлей"
+
+
+- Далее ищем в списке кейсы из конфига config.needed_cases по правилам из дока и сохраняем что надо получить от юзера. 
+
+- Если есть что поменять, жмем "Предложить обмен". Жмем для этого кнопку '[href*="/trades/new"]'
+
+- Подождать пока div.trades.processing станет div.trades. Значит страница загружена
+
+- Фильтруем свой инвентарь 
+
+// $('.trades-main-inventories-one:nth-child(1)').length - свой инвентарь
+// $('.trades-main-inventories-one:nth-child(2)').length - инвентарь юзера
+
+
+// await page.waitForSelector('.trades-main-inventories-one:nth-child(1)', {visible: true})
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

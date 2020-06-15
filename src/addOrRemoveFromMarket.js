@@ -1,9 +1,10 @@
 
 const a = require('awaiting');
-const {autoScroll, clear, rand} = require('./helpers');
+const {clear, rand} = require('./helpers');
 const installMouseHelper = require('./install-mouse-helper.js').installMouseHelper;
 const createCursor = require("ghost-cursor").createCursor;
 const uuidv4 = require('uuid').v4;
+const scrollPageToBottom = require('puppeteer-autoscroll-down');
 
 module.exports = async function addOrRemoveFromMarket(browser) {
     const page = await browser.newPage();
@@ -34,7 +35,7 @@ module.exports = async function addOrRemoveFromMarket(browser) {
         // Remove from market if it's already there
         //        
         let removeFromMarketButtonId = 'button-' + uuidv4().replace(/-/g, '');
-        await korobochka5El.evaluate(async (el, removeFromMarketButtonId) => {
+        await korobochka5El.evaluateHandle(async (el, removeFromMarketButtonId) => {
             const input = el.parentElement.querySelector('input');
             input.id = removeFromMarketButtonId;
         }, removeFromMarketButtonId);
@@ -74,9 +75,10 @@ module.exports = async function addOrRemoveFromMarket(browser) {
         
         await page.waitForSelector('[style*="dices-5.png"]');
         await pageCursor.click('[style*="dices-5.png"]');
-        const interval = await autoScroll(page);
-        await a.delay(2000);
-        clearInterval(interval);
+        
+        await scrollPageToBottom(page);
+        await a.delay(300);
+        
 
 
         await page.waitForSelector('.InventoryHelper-body-buttons div:nth-child(2)');
