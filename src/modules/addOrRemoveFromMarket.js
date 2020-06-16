@@ -2,6 +2,7 @@
 const a = require('awaiting');
 const helpers = require('./../helpers');
 const uuidv4 = require('uuid').v4;
+const debug = require('debug')('mon:addOrRemoveFromMarket');
 
 module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
     if (! page && orBrowser) {

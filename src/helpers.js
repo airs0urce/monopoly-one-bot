@@ -14,7 +14,8 @@ exports.rand = function rand(min, max) {
 
 exports.newPage = async function(browser) {
     const page = await browser.newPage();
-    page._cursor = createCursor(page);
+    const startPoint = { x: exports.rand(100, 400), y: exports.rand(100, 400)};
+    page._cursor = createCursor(page, startPoint);
     await installMouseHelper(page);
     page.setDefaultNavigationTimeout(120 * 1000);
     page.setDefaultTimeout(120 * 1000);

@@ -4,12 +4,14 @@ const helpers = require('./../helpers');
 const config = require('./../config');
 const uuidv4 = require('uuid').v4;
 const url = require('url');
+const debug = require('debug')('mon:loginMonopoly');
 
 module.exports = async function loginMonopoly(page, orBrowser) {
     if (! page && orBrowser) {
         page = await helpers.newPage(orBrowser);
     }
-
+    debug(`Logging in ${config.monopoly_auth.username}:${config.monopoly_auth.password}`);
+    
     //
     // AUTH
     //

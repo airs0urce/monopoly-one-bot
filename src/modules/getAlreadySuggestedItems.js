@@ -2,8 +2,28 @@
 const a = require('awaiting');
 const helpers = require('./../helpers');
 const uuidv4 = require('uuid').v4;
+const debug = require('debug')('mon:getAlreadySuggestedItems');
 
-module.exports = async function getAlreadySuggestedCards(page, orBrowser) {
+module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
+
+    /*
+    {
+        profile: 'https://monopoly-one.com/profile/1811013',
+        profileId: '1811013',
+        items: [
+        {
+            id: 'thing_17430559',
+            name: 'Air Baltic',
+            imagUrl: 'https://cdn2.kirick.me/libs/monopoly/fields/brands/5_airlines/air_baltic.svg'
+        },
+        {
+            id: 'thing_17746136',
+            name: 'HTC',
+            imagUrl: 'https://cdn2.kirick.me/libs/monopoly/fields/brands/8_smartphones/htc.svg'
+        }
+        ]
+    }
+    */
 
     if (! page && orBrowser) {
         page = await helpers.newPage(orBrowser);
@@ -27,24 +47,54 @@ module.exports = async function getAlreadySuggestedCards(page, orBrowser) {
     let loadSuccess = false;
     while (loadSuccess = await loadMoreResults(page)) {
         await helpers.scrollPageToBottom(page);
-        await a.delay(helpers.rand(1000, 1400));
+        await a.delay(helpers.rand(100, 300));
     }
 
     // 
     // Take all items already on trade
     //
-    const items = await page.$$('.trades-main-list-one-content-one._lost .trades-main-list-one-content-one-list > div');
-    const resultItems = [];
+    const results = [];
+    const items = await page.$$('div.trades-main-list-one');
     for (let item of items) {
-        resultItems.push(await item.evaluate(async (el) => {
-            return el.id;
-        }));
-    }
+        const profileUrl = await (await item.$('a.trades-main-list-one-user-avatar')).evaluate((el) => {
+            return el.href;
+        });
 
+        const itemsForSell = await page.$$('.trades-main-list-one-content .trades-main-list-one-content-one._lost .trades-main-list-one-content-one-list > div');
+        const itemsForSellList = [];
+        for (let itemForSell of itemsForSell) {
+            const name = await (await itemForSell.$('.thing-image')).evaluate(async (el) => {
+                return el.getAttribute('kd-tooltip');
+            });
+
+            const backgroundImage = await (await itemForSell.$('.thing-image div')).evaluate(async (el) => {
+                let backgroundImage = el.style.backgroundImage;
+                backgroundImage = backgroundImage.replace('url("', '').replace('")', '');
+                return backgroundImage;
+            });
+
+            const id = await itemForSell.evaluate(async (el) => {
+                return el.id;
+            });
+            itemsForSellList.push({
+                id: id,
+                name: name,
+                imagUrl: backgroundImage,
+            });
+        }
+
+        results.push({
+            profileUrl: profileUrl,
+            profileId: profileUrl.replace('https://monopoly-one.com/profile/', ''),
+            items: itemsForSellList,
+        })
+    }
+   
     setTimeout(() => {
         page.close();
     }, 500);
-    return resultItems;
+
+    return results;
 }
 
 

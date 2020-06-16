@@ -1,3 +1,6 @@
+
+process.env.DEBUG = 'mon:*';
+
 const config = require('./config')
 const util = require('util');
 const puppeteer = require('puppeteer-extra')
@@ -9,6 +12,9 @@ const loginMonopoly = require('./modules/loginMonopoly');
 const getAlreadySuggestedItems = require('./modules/getAlreadySuggestedItems');
 const getMatchingGamesList = require('./modules/getMatchingGamesList');
 const addOrRemoveFromMarket = require('./modules/addOrRemoveFromMarket');
+const suggestProfileExchange = require('./modules/suggestProfileExchange');
+
+const globals = require('./globals');
 
 
 
@@ -23,17 +29,35 @@ let browser;
             `--disable-extensions-except=${__dirname}/../extension/`,
             `--load-extension=${__dirname}/../extension/`,
         ]
-    })
+    });
 
     let page = await loginMonopoly(null, browser);
 
-    // const alreadySuggestedItems = await getAlreadySuggestedItems(null, browser);
-    // await addOrRemoveFromMarket(null, browser);
+    const alreadySuggestedItems = await getAlreadySuggestedItems(null, browser);
+    //await addOrRemoveFromMarket(null, browser);
+
+    // add items to globals
+    for (let alreadySuggestedItem of alreadySuggestedItems) {
+        for (let item of alreadySuggestedItem.items) {
+            globals.addItem('USED_ITEMS', item.id);
+        }
+        globals.addItem('SUGGESTED_PROFILES', item.profileUrl);
+    }
+
+    // get games
+//+    const games = await getMatchingGamesList(null, browser);
+
+    // 
+    await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/1633884');
+
+    
+
+    
 
 
-    const games = await getMatchingGamesList(null, browser);
+    
 
-    console.log('games:', games);
+    // console.log('games:', games);
     
     
 
