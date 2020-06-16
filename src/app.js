@@ -12,11 +12,11 @@ const addOrRemoveFromMarket = require('./modules/addOrRemoveFromMarket');
 
 
 
-
-
 let browser;
 
 (async () => {
+    await require('./enable-puppeteer-background-only.js');
+
     browser = await puppeteer.launch({
         headless:false,
         args: [
