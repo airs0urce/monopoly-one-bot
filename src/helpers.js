@@ -12,13 +12,19 @@ exports.rand = function rand(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
+exports.scrollToElement = async function(el) {
+    await el.evaluate((el) => {
+        el.scrollIntoView({block: 'nearest'});
+    })
+}
+
 exports.newPage = async function(browser) {
     const page = await browser.newPage();
-    const startPoint = { x: exports.rand(100, 400), y: exports.rand(100, 400)};
+    const startPoint = { x: exports.rand(100, 700), y: exports.rand(100, 700)};
     page._cursor = createCursor(page, startPoint);
     await installMouseHelper(page);
-    page.setDefaultNavigationTimeout(120 * 1000);
-    page.setDefaultTimeout(120 * 1000);
+    page.setDefaultNavigationTimeout(120 * 1000 * 6);
+    page.setDefaultTimeout(120 * 1000 * 6);
     await page.on("dialog", async (dialog) => {
         await a.delay(1500);
         dialog.accept();

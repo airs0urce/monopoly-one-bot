@@ -24,6 +24,8 @@ const rimraf = require('rimraf');
 let browser;
 
 (async () => {
+    debug('Начинаем');
+    let handledProfilesCount = 0;
 
     const sessionFolder  = config.monopoly_auth.username.replace('@', '').replace(/\./g, '');
     const userDataFolder = __dirname + '/browserUserData/' + sessionFolder;
@@ -37,9 +39,8 @@ let browser;
 
     // await require('./enable-puppeteer-background-only.js');
 
-    
 
-
+    debug('Запускаем браузер');
     browser = await puppeteer.launch({
         headless:false,
         userDataDir: userDataFolder,
@@ -52,7 +53,6 @@ let browser;
     const page = await helpers.newPage(browser);    
 
     await loginMonopoly(page);
-
 
     const alreadySuggestedItems = await getAlreadySuggestedItems(null, browser);
     //await addOrRemoveFromMarket(null, browser);
@@ -68,42 +68,49 @@ let browser;
         });
     }
 
-    // get games
-//+    const games = await getMatchingGamesList(null, browser);
+await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/522832');
+await a.delay(300000000);
 
-    // 
+
+    const games = await getMatchingGamesList(null, browser);
+
+    let startFromProfile = null;
+    //let startFromProfile='https://monopoly-one.com/profile/522832'
+
+    for (let game of games) {
+        /*
+        min: 0,
+        sec: 0,
+        title: '',
+        players: [{profile_link: ''}],
+        */
+
+        debug(`обработка игроков со стола ${game.title}. Время стола: ${game.min}:${game.sec}`);
+        
+        for (let player of game.players) {
+            if (handledProfilesCount >= 15) {
+                // add or remove item from market. Ban protection
+                debug(`${handledProfilesCount} профайлов обработано, удаляем\добавляем вещь на маркет, чтобы избежать банов...`);
+                await addOrRemoveFromMarket(null, browser);
+                handledProfilesCount = 0;
+            }
+
+            if (startFromProfile && player.profile_link != startFromProfile) {
+                continue;
+            } else {
+                startFromProfile = null;
+            }
+
+            await suggestProfileExchange(browser, player.profile_link);
+            handledProfilesCount++ 
+        }
+    }
     
-    await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/1798548'); // воробушек
+    // await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/1798548'); // воробушек
     // await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/awesomo');
 
-
-
-
-    /*
-    const handledProfilesCount = globals.get('HANDLED_PROFILES', 0);
-    const maxAccountsInRow = helpers.rand(12, 15);
-
-    if (handledProfilesCount >= maxAccountsInRow) {
-        // add or remove item on market to make sure we are not banned to see profiles
-        debug(`${suggestedProfile.name}: ${handledProfilesCount} профайлов обработано, удаляем\добавляем вещь на маркет, чтобы избежать банов (рандомно от 12 до 15 аккаунтов)`);
-        await addOrRemoveFromMarket(null, browser);
-        globals.set('HANDLED_PROFILES', 0);
-    }
-    globals.set('HANDLED_PROFILES', globals.get('HANDLED_PROFILES', 0) + 1);
-    */
-
-    
-
-    
-
-
-    
-
-    // console.log('games:', games);
-    
-    
-
-    // await browser.close()
+    debug('На этом наши полномочия все!');
+    await browser.close()
 })();
 
 

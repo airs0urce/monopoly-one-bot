@@ -64,13 +64,14 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
         
         await page.waitForSelector('[style*="dices-5.png"]');
         await page._cursor.click('[style*="dices-5.png"]');
-        await a.delay(400);
-        await helpers.scrollPageToBottom(page);
-        
         await page.waitForSelector('.InventoryHelper-body-buttons div:nth-child(2)');
+        await a.delay(200);
+        await helpers.scrollToElement(await page.$('[style*="dices-5.png"]'));
+        await a.delay(500);
         await page._cursor.click('.InventoryHelper-body-buttons div:nth-child(2)');
-        await a.delay(1000);
+        await a.delay(200);
         
+
 
         await page._cursor.click('.inventory-marketSell-costs-value input');
         await helpers.clear(page, '.inventory-marketSell-costs-value input');

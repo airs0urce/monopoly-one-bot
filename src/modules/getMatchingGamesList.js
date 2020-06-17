@@ -6,6 +6,7 @@ const debug = require('debug')('mon:getMatchingGameList');
 
 module.exports = async function getMatchingGamesList(page, orBrowser) {
     
+    debug('Получение всех игроков со столов M1TV');
     if (! page && orBrowser) {
         page = await helpers.newPage(orBrowser);
     }
@@ -20,12 +21,14 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
     //
     // Load more results until page finished
     //
-    await helpers.scrollPageToBottom(page);
+    debug('Получение всех игроков со столов M1TV - подгружаем все страницы c играми');
+    //await helpers.scrollPageToBottom(page);
+
+    await helpers.scrollToElement(await page.$('div.footer'));
+    
     let loadSuccess = false;
     while (loadSuccess = await loadMoreResults(page)) {
-        console.log('before scroll');
-        await helpers.scrollPageToBottom(page);
-        console.log('after scroll');
+        await helpers.scrollToElement(await page.$('div.footer'));
         await a.delay(helpers.rand(100, 150));
     }
     
@@ -33,7 +36,7 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
     //
     // Parsing game list
     //
-
+    debug('Получение всех игроков со столов M1TV - парсинг списка игр');
     const gameList = [];
 
     const gameListElements = await page.$$('div.m1tvLive-games-list div.VueGame');
@@ -52,7 +55,7 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
         gameTitle = await gameTitle.evaluate(el => el.innerHTML);
         if (gameTitle == 'Перетасовка') {
             // ignore this type of game as we only need players with type == idiot 
-            console.log('IGNORE GAME REASON: title is "' + gameTitle + '"');
+            debug(`Игнорируем игру по причине тайтла "Перетасовка"`);
             continue;
         }
         game.title = gameTitle;
@@ -67,7 +70,8 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
         if (gameTime.match(/\d:[\d]{1,2}:[\d]{1,2}/)) {
             // in this case time looks like this: 1:32:11
             // so, it's longer than 1 hour and we don't need this game for sure as we need from 0 to 20
-            console.log('IGNORE GAME REASON: time is "' + gameTime + '"');
+            
+            debug(`Игнорируем игру по причине неподходящего времени "${gameTime}"`);
             continue;
         }
         const gameTimeMatch = gameTime.match(/[\d]{1,2}:[\d]{1,2}/);
@@ -110,6 +114,15 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
         gameList.push(game);
         
     }
+        
+    let playersAmount = 0; 
+    for (let gameListItem of gameList) {
+        playersAmount += gameListItem.players.length;
+    }
+
+    debug(`Получение всех игроков со столов M1TV - успешно. Всего подходящих нам игр ${gameList.length}. Всего игроков: ${playersAmount}`);
+
+
     return gameList;
 }
 

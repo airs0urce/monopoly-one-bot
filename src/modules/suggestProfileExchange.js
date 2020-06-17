@@ -16,6 +16,7 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     const alreadySuggestedProfile = getSuggestedProfileByUrl(profileUrl);
     if (alreadySuggestedProfile) {        
         debug(`${alreadySuggestedProfile.name}: Пропускаем профайл, уже есть обмен с этим пользователем`);
+        await page.close();
         return;
     }
     
@@ -41,6 +42,7 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
 
     if (matchesAmount >= config.profileMaxGames) {
         debug(`${profileName}: Пропускаем профайл, т.к. кол-во игр ${matchesAmount} (больше ${config.profileMaxGames})`);
+        await page.close();
         return;
     }
 
@@ -53,6 +55,7 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         await page._cursor.click('.title.title-3 a');
     } else {
         debug(`${profileName}: Пропускаем профайл, т.к. инвентарь пустой`);
+        await page.close();
         return;
     }
 
@@ -79,6 +82,7 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
 
     if (! neededCaseExists) {
         debug(`${profileName}: Пропускаем профайл, т.к. нет нужных кейсов`);
+        await page.close();
         return;
     }
 
@@ -114,6 +118,7 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
             });
             
             debug(`${profileName}: Обмен невозможен. ${errorMessage}`);
+            await page.close();
             return;
         }
     }
@@ -166,8 +171,9 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     // If we used all cards already - let's just finish script 
     //
     if (myItems.length == 0) {
-        debug(`${profileName}: Завершаем обратобку пользователя, т.к. не осталось больше карточек для предложений пользователям.`);        
+        debug(`${profileName}: Завершаем обратобку, т.к. у нас не осталось больше карточек для предложений.`);        
         debug(`${profileName}: Завершаем скрипт, т.к. нет смысла продолжать смотреть профайлы, когда у нас нет карточек`);
+        await a.delay(1000 * 60 * 60);
         process.exit()
         return;               
     }
@@ -209,6 +215,7 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
 
     if (myItems.length == 0) {
         debug(`${profileName}: Пропускаем профайл. Нет карточек, которые можно предложить, у пользователя уже все есть`);
+        await page.close();
         return;
     }
 
@@ -216,14 +223,25 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     debug(`${profileName}: у него всего ${hisItems.length} предметов`);
 
     // Filter by "Cases and Sets"
-    (await page.$('.trades-main-inventories-one:nth-child(2) ._filter [design-selecter-value="containers"]')).evaluate((el) => { el.click() })
+    await (await page.$('.trades-main-inventories-one:nth-child(2) ._filter [design-selecter-value="containers"]')).evaluate((el) => { el.click() })
     await a.delay(250);
 
     // get only cases and sets of another user
     hisItems = [];
     hisItemEls = await page.$$('.trades-main-inventories-one:nth-child(2) .trades-main-inventories-one-list div.tradesThing[mnpl-filter="1"]');
+
+    // IMPORTANT: HIDE ALL .selecter-options as they make a problem whne we move cursor
+    // elements can appear and user wil click them instead of cases
+    await page.evaluate(() => {
+        const selectors = document.querySelectorAll('.block .trades-main-inventories-one:nth-child(2) .selecter-options')
+        selectors[0].style.display = 'none';
+        selectors[1].style.display = 'none';
+    });
+    await a.delay(250);
+    
+
     const ignoredCases = [];
-    for (let hisItemEl of hisItemEls) {        
+    for (let hisItemEl of hisItemEls) {     
         const name = await (await hisItemEl.$('.thing-image')).evaluate(async (el) => {
             return el.getAttribute('kd-tooltip');
         });
@@ -254,6 +272,7 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         if (ignoredCases.length > 0) {
             debug(`${profileName}: Кейсы, которые были исключены как неподходящие: "${ignoredCases.join('","')}"`);
         }
+        await page.close();
         return;
     } else {
         debug(`${profileName}: Список кейсов, которые нам нужны от юзера: "${casesNames.join('", "')}"`)
@@ -292,11 +311,22 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     await page._cursor.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(1)');
     await a.delay(200);
     
+
+    // IMPORTANT: HIDE ALL .selecter-options as they make a problem whne we move cursor
+    // elements can appear and user wil click them instead of cases
+    await page.evaluate(() => {
+        const selectors = document.querySelectorAll('.block .trades-main-inventories-one:nth-child(1) .selecter-options')
+        if (selectors[0]) selectors[0].style.display = 'none';
+        if (selectors[1]) selectors[1].style.display = 'none';
+    });
+    await a.delay(250);
+
+    debug(`${profileName}: кликаем мои карточки для добавления в обмен`);
+
     let clicked = 0;
     for (let myItem of myItems) {
-
-
-        await page._cursor.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItem.id}"]`);
+        debug(`${profileName}: кликаем свою карточку ${myItem.name}`);
+        await page._cursor.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItem.id}"]:not(._selected)`);
         await a.delay(300);
         
         globals.addItem('USED_ITEMS', myItem.id);
@@ -310,12 +340,16 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     }
 
     // open his items tab
+    debug(`${profileName}: открываем его таб`);
     await page._cursor.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(2)');
     await a.delay(200);
 
+    debug(`${profileName}: кликаем его кейсы`);
     clicked = 0;
-    for (let hisItem of hisItems) {            
-        await page._cursor.click(`.block .trades-main-inventories-one:nth-child(2) div.tradesThing .thing-image > div[style*="${hisItem.imagUrl}"] `);
+    for (let hisItem of hisItems) {    
+
+        debug(`${profileName}: кликаем кейс ${hisItem.name}`);
+        await page._cursor.click(`.block .trades-main-inventories-one:nth-child(2) div.tradesThing:not(._selected) .thing-image > div[style*="${hisItem.imagUrl}"] `);
         await a.delay(300);
 
         hisCases.push(hisItem.name);
