@@ -66,13 +66,11 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
         await page._cursor.click('[style*="dices-5.png"]');
         await page.waitForSelector('.InventoryHelper-body-buttons div:nth-child(2)');
         await a.delay(200);
-        await helpers.scrollToElement(await page.$('[style*="dices-5.png"]'));
+        await helpers.scrollToElement(await page.$('.InventoryHelper-body-buttons div:nth-child(2)'));
         await a.delay(500);
         await page._cursor.click('.InventoryHelper-body-buttons div:nth-child(2)');
-        await a.delay(200);
-        
 
-
+        await page.waitForSelector('.inventory-marketSell-costs-value input');
         await page._cursor.click('.inventory-marketSell-costs-value input');
         await helpers.clear(page, '.inventory-marketSell-costs-value input');
         const priceToType = helpers.rand(450, 500).toString();

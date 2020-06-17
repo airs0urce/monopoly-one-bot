@@ -68,10 +68,6 @@ let browser;
         });
     }
 
-await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/522832');
-await a.delay(300000000);
-
-
     const games = await getMatchingGamesList(null, browser);
 
     let startFromProfile = null;

@@ -16,7 +16,6 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     const alreadySuggestedProfile = getSuggestedProfileByUrl(profileUrl);
     if (alreadySuggestedProfile) {        
         debug(`${alreadySuggestedProfile.name}: Пропускаем профайл, уже есть обмен с этим пользователем`);
-        await page.close();
         return;
     }
     
@@ -102,11 +101,22 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     }, 2000)
 
     debug(`${profileName}: Ждем загрузки страницы`);
-    await page.waitForSelector('div.trades.processing');
-    await helpers.waitSelectorDisappears(page, 'div.trades.processing');
-    await a.delay(500);
-
-
+    const wasCaptcha = await helpers.waitForCaptcha(page);
+    debug('debug 1');
+    if (wasCaptcha) {
+        debug('debug 2');
+        await page.waitForSelector('div.trades');
+        debug('debug 3');
+        await helpers.waitForCaptcha(page);
+    } else {
+        debug('debug 4');
+        await page.waitForSelector('div.trades.processing');
+        debug('debug 5');
+        await helpers.waitSelectorDisappears(page, 'div.trades.processing');
+        debug('debug 6');
+    }
+    await a.delay(2000);
+    
     const notAvailableEl = await page.$('.trades-main-inventories-persons-one:nth-child(2) .trades-main-inventories-persons-one-info-count em');
     if (notAvailableEl) {
         const notAvailableForExchange = await notAvailableEl.evaluate((el) => {
@@ -129,11 +139,16 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     //
 
     // filter only cards
-    await a.delay(300);
-    (await page.$('.trades-main-inventories-one:nth-child(1) ._filter [design-selecter-value="cards"]')).evaluate((el) => { el.click() })
-    await a.delay(300);
+    await helpers.waitForCaptcha(page);
+
+    await a.delay(400);
+    (await page.$('.trades-main-inventories-one:nth-child(1) ._filter [design-selecter-value="cards"]')).evaluate(async (el) => { 
+        el.click();
+    });
+    await a.delay(400);
     let myItems = [];
-    const myItemEls = await page.$$('.trades-main-inventories-one:nth-child(1) .trades-main-inventories-one-list div.tradesThing[mnpl-filter="1"]');
+    let myItemEls = await page.$$('.trades-main-inventories-one:nth-child(1) .trades-main-inventories-one-list div.tradesThing[mnpl-filter="1"]');
+
     for (let myItemEl of myItemEls) {        
         const name = await (await myItemEl.$('.thing-image')).evaluate(async (el) => {
             return el.getAttribute('kd-tooltip');

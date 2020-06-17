@@ -14,7 +14,7 @@ exports.rand = function rand(min, max) {
 
 exports.scrollToElement = async function(el) {
     await el.evaluate((el) => {
-        el.scrollIntoView({block: 'nearest'});
+        el.scrollIntoView({block: 'center', inline: 'center'});
     })
 }
 
@@ -75,4 +75,17 @@ exports.scrollPageToBottom = async function(page, scrollStep = 500, scrollDelay 
         scrollDelay
     );
     return lastPosition
+}
+
+
+exports.waitForCaptcha = async function(page) {
+    const captchaExists = !!(page.$('.VueCaptcha'));
+    if (captchaExists) {
+        console.log('FOUND CAPTCHA');
+        await exports.waitSelectorDisappears(page, '.VueCaptcha'); // in case of captcha
+        await a.delay(3000);
+        return true;
+    }
+    return false;
+    
 }

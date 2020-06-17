@@ -69,7 +69,7 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
 
         if (gameTime.match(/\d:[\d]{1,2}:[\d]{1,2}/)) {
             // in this case time looks like this: 1:32:11
-            // so, it's longer than 1 hour and we don't need this game for sure as we need from 0 to 20
+            // so, it's longer than 1 hour and we don't need this game for sure as we need from 0 to config.game_maximal_minutes
             
             debug(`Игнорируем игру по причине неподходящего времени "${gameTime}"`);
             continue;
@@ -81,8 +81,8 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
         let [gameMin, gameSec] = gameTimeMatch[0].split(':');
         game.min = parseInt(gameMin, 10);
         game.sec = parseInt(gameSec, 10);
-        if (game.min > 20) {
-            // ignore this game as we need games from 0 to 20 min
+        if (game.min > config.game_maximal_minutes) {
+            // ignore this game as we need games from 0 to "config.game_maximal_minutes" min
             console.log('IGNORE GAME REASON: time is "' + gameTime + '"');
             continue;
         }
@@ -122,6 +122,9 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
 
     debug(`Получение всех игроков со столов M1TV - успешно. Всего подходящих нам игр ${gameList.length}. Всего игроков: ${playersAmount}`);
 
+    if (gameList.length == 0) {
+        await a.delay(1000 * 60 * 60);
+    }
 
     return gameList;
 }
