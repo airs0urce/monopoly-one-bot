@@ -15,21 +15,9 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
 
     const alreadySuggestedProfile = getSuggestedProfileByUrl(profileUrl);
     if (alreadySuggestedProfile) {        
-        debug(`${suggestedProfile.name}: Пропускаем профайл, т.к. мы уже сделали предложение обмена пользователю ${suggestedProfile.url}`);
+        debug(`${alreadySuggestedProfile.name}: Пропускаем профайл, уже есть обмен с этим пользователем`);
         return;
     }
-
-
-    const handledProfilesCount = globals.get('HANDLED_PROFILES', 0);
-    const maxAccountsInRow = helpers.rand(12, 15);
-
-    if (handledProfilesCount >= maxAccountsInRow) {
-        // add or remove item on market to make sure we are not banned to see profiles
-        debug(`${suggestedProfile.name}: ${handledProfilesCount} профайлов обработано, удаляем\добавляем вещь на маркет, чтобы избежать банов (рандомно от 12 до 15 аккаунтов)`);
-        await addOrRemoveFromMarket(null, browser);
-        globals.set('HANDLED_PROFILES', 0);
-    }
-    globals.set('HANDLED_PROFILES', globals.get('HANDLED_PROFILES', 0) + 1);
     
     const page = await helpers.newPage(browser);
     
@@ -42,7 +30,6 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     const profileName = await (await page.$('span._nick')).evaluate((el) => {
         return el.innerText;
     });
-    globals.addItem('SUGGESTED_PROFILES', {url: profileUrl, name: profileName});
 
 
     //
@@ -84,7 +71,7 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     for (let neededCase of config.needed_cases) {        
         neededCaseExists = !!(await page.$(`.inventory-items div[style*="${neededCase.image}"]`));
         if (neededCaseExists) {
-            debug(`${profileName}: Нашли нужные кейсы`);
+            debug(`${profileName}: Нашли нужные нам кейсы`);
             break;
         }
         
@@ -156,8 +143,8 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         });
 
         myItems.push({
-            id: id,
             alreadyUsed: globals.hasItem('USED_ITEMS', id),
+            id: id,
             name: name,
             imagUrl: backgroundImage,
             el: myItemEl
@@ -180,7 +167,8 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     //
     if (myItems.length == 0) {
         debug(`${profileName}: Завершаем обратобку пользователя, т.к. не осталось больше карточек для предложений пользователям.`);        
-        // TODO: скрипт завершать тоже надо
+        debug(`${profileName}: Завершаем скрипт, т.к. нет смысла продолжать смотреть профайлы, когда у нас нет карточек`);
+        process.exit()
         return;               
     }
 
@@ -268,48 +256,102 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         }
         return;
     } else {
-        debug(`${profileName}:Список кейсов, которые нам нужны от юзера: "${casesNames.join('", "')}"`)
+        debug(`${profileName}: Список кейсов, которые нам нужны от юзера: "${casesNames.join('", "')}"`)
     }
-    
-
-
 
 
     //
-    // Now "myItems" contains only cards that we can suggest to user. So, let's do it
+    // Now "myItems" contains only cards that we can suggest to user. 
+    // and "hisItems" contains items that we need to get
+    // So, let's do it 
     //
 
+
+    debug(`${profileName}: Итак, у нас ${myItems.length} карточек, а у юзера ${hisItems.length} кейсов, которые надо забрать`);
     
-    // Get all cases from another user that we need to get
-    const maxCasesToAsk = myItems.length;
+    const myCards = [];
+    const hisCases = [];
+    let exchangeAmount = 0;
 
+    if (myItems.length > hisItems.length) {
+        debug(`${profileName}: У нас больше карточек, чем у него кейсов, так что предложим обмен ${hisItems.length} карточек на ${hisItems.length} кейсов`)        
+        exchangeAmount = hisItems.length;
+    } else if (myItems.length < hisItems.length) {
+        debug(`${profileName}: У нас меньше карточек, чем у него кейсов. Значит, возьмем ${myItems.length} шт. наших карточек и попросим первые ${myItems.length} кейсов на обмен. Остальные кейсы обработай вручную, купив карточки.`)
+        exchangeAmount = myItems.length;
+    } else if (myItems.length == hisItems.length) {
+        debug(`${profileName}: У нас карточек сколько же, сколько у него кейсов. Предлагаем обмен ${hisItems.length} на ${hisItems.length}`)
+        exchangeAmount = hisItems.length;
+    }
 
+    //
+    // Выбираем кейсы для обмена и отправляем предложение
+    //
 
-
-
-    //debug(`Мы попросим ${myItems.length}`)
-
-
-    // 
-
-
-
-
-    // console.log('myItems:', util.inspect(myItems, {depth: 5}));
-    // myItems.push({
-    //         id: id,
-    //         alreadyUsed: globals.hasItem('USED_ITEMS', id)
-    //         name: name,
-    //         imagUrl: backgroundImage,
-    //         el: myItemEl
-    //     });
+    // open my items tab
+    await page._cursor.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(1)');
+    await a.delay(200);
     
+    let clicked = 0;
+    for (let myItem of myItems) {
+
+
+        await page._cursor.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItem.id}"]`);
+        await a.delay(300);
+        
+        globals.addItem('USED_ITEMS', myItem.id);
+
+        myCards.push(myItem.name);
+
+        clicked++
+        if (clicked >= exchangeAmount) {
+            break;
+        }
+    }
+
+    // open his items tab
+    await page._cursor.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(2)');
+    await a.delay(200);
+
+    clicked = 0;
+    for (let hisItem of hisItems) {            
+        await page._cursor.click(`.block .trades-main-inventories-one:nth-child(2) div.tradesThing .thing-image > div[style*="${hisItem.imagUrl}"] `);
+        await a.delay(300);
+
+        hisCases.push(hisItem.name);
+
+        clicked++
+        if (clicked >= exchangeAmount) {
+            break;
+        }
+    }
+
+    await page._cursor.click('input[value="Отправить предложение"]');    
+    
+    await page.waitForSelector('.vueDesignDialog-title');
+    const dialogTitle = await (await page.$('.vueDesignDialog-title')).evaluate(async (el) => {
+        return el.innerText;
+    });
+
+
+    if (dialogTitle.includes('отправлено')) {
+        debug(`${profileName}: Успешно отправили предложение обмена наших карточек "${myCards.join('", "')}" на кейсы "${hisCases.join('", "')}"`)
+        globals.addItem('SUGGESTED_PROFILES', {url: profileUrl, name: profileName});
+    } else {
+        debug(`${profileName}: Что-то пошло не так :( Сообщение: ${dialogTitle}`);
+        debug(`${profileName}: Завершаем скрипт`);
+        process.exit();
+    }
+
+    await a.delay(2000);
+    await page.close();
 }
 
 
 function getSuggestedProfileByUrl(profileUrl) {
     const suggestedProfiles = globals.get('SUGGESTED_PROFILES', []);
     const suggestedProfilesFilter = suggestedProfiles.filter(e => e.url === profileUrl);
+
     if (suggestedProfilesFilter.length > 0) {
         return suggestedProfilesFilter[0];
     } else {

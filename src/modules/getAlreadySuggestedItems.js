@@ -61,8 +61,9 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
     debug('Парсинг всех предметов отправленных на обмен');
     const results = [];
     const items = await page.$$('div.trades-main-list-one');
+    const handledIds = [];
     for (let item of items) {
-        const profileUrl = await (await item.$('a.trades-main-list-one-user-avatar')).evaluate((el) => {
+        const profileUrl = await (await item.$('.trades-main-list-one-user-info-main a')).evaluate((el) => {
             return el.href;
         });
 
@@ -87,13 +88,18 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
                 return el.id;
             });
 
+            if (handledIds.includes(id)) {
+                continue;
+            }
+            handledIds.push(id);
+
             itemsForSellList.push({
                 id: id,
                 name: name,
                 imagUrl: backgroundImage,
             });
 
-            debug(`Предмет "${name}" с ID "${id}" уже отправлен в обмен (картинка предмета ${backgroundImage})`);
+            debug(`Предмет "${name}" с ID "${id}" уже использован (картинка ${backgroundImage})`);
             itemsUsed[id] = 1;
         }
 

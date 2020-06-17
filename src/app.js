@@ -76,6 +76,22 @@ let browser;
     await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/1798548'); // воробушек
     // await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/awesomo');
 
+
+
+
+    /*
+    const handledProfilesCount = globals.get('HANDLED_PROFILES', 0);
+    const maxAccountsInRow = helpers.rand(12, 15);
+
+    if (handledProfilesCount >= maxAccountsInRow) {
+        // add or remove item on market to make sure we are not banned to see profiles
+        debug(`${suggestedProfile.name}: ${handledProfilesCount} профайлов обработано, удаляем\добавляем вещь на маркет, чтобы избежать банов (рандомно от 12 до 15 аккаунтов)`);
+        await addOrRemoveFromMarket(null, browser);
+        globals.set('HANDLED_PROFILES', 0);
+    }
+    globals.set('HANDLED_PROFILES', globals.get('HANDLED_PROFILES', 0) + 1);
+    */
+
     
 
     
