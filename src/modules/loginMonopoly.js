@@ -36,8 +36,6 @@ module.exports = async function loginMonopoly(page, orBrowser) {
         debug('Логинимся: Нет, не залогинен)');
     }
 
-await a.delay(1000 * 60 * 10)
-;
     await login(page);
 
     await a.delay(3000);

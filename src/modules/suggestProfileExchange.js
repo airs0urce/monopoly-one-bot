@@ -211,9 +211,6 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         });
     }
 
-    debug(`${profileName}: у него всего ${hisItems.length} предметов`);
-
-
     // Remove from my cards those owned by another user
     const hisImageUrls = hisItems.map((hisItem) => { return hisItem.imageUrl })
     myItems = myItems.filter((myItem) => {
@@ -226,6 +223,9 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         debug(`${profileName}: Пропускаем профайл. Нет карточек, которые можно предложить, у пользователя уже все есть`);
         return;
     }
+
+
+    debug(`${profileName}: у него всего ${hisItems.length} предметов`);
 
     // Filter by "Cases and Sets"
     (await page.$('.trades-main-inventories-one:nth-child(2) ._filter [design-selecter-value="containers"]')).evaluate((el) => { el.click() })

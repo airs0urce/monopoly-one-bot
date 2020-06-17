@@ -18,17 +18,28 @@ const suggestProfileExchange = require('./modules/suggestProfileExchange');
 const globals = require('./globals');
 const d = require('debug');
 const debug = d(`mon:app`);
+const rimraf = require('rimraf');
 
 
 let browser;
 
 (async () => {
-    // await require('./enable-puppeteer-background-only.js');
 
     const sessionFolder  = config.monopoly_auth.username.replace('@', '').replace(/\./g, '');
     const userDataFolder = __dirname + '/browserUserData/' + sessionFolder;
 
-   
+    var args = process.argv.slice(2);
+    if (args.includes('--clear')) {
+        debug('запуск с параметром --clear, чистим сессионные данные браузера')
+        rimraf.sync(userDataFolder);
+    }
+    
+
+    // await require('./enable-puppeteer-background-only.js');
+
+    
+
+
     browser = await puppeteer.launch({
         headless:false,
         userDataDir: userDataFolder,
