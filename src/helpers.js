@@ -27,6 +27,7 @@ exports.newPage = async function(browser) {
 }
 
 exports.waitSelectorDisappears = async function(page, selector) {
+    // wait for disapearing
     while (true) {
         await a.delay(300);
         const stillProcessing = !!(await page.$(selector));

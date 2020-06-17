@@ -12,6 +12,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
     //
     // Check if it's on market already
     //
+    debug('проверяем, выставлена ли "Коробочка с кубиками #5" на маркет')
     await page.goto('https://monopoly-one.com/market/my', {referer: 'https://monopoly-one.com/market'});     
     await page.waitForSelector('.market-list');
     await page.waitForSelector('.market-list.processing');
@@ -21,7 +22,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
     const korobochka5El = await page.$(`[style*="dices-5.png"]`);
     let result = '';
     if (korobochka5El) {
-        console.log('ALREADY ON MARKET - removing...');
+        debug('"Коробочка с кубиками #5" на маркете, удаляем ее...')
         //
         // Remove from market if it's already there
         //        
@@ -46,10 +47,10 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
             }
         }
 
-        console.log('REMOVE SUCCESS...');
+        debug('"Коробочка с кубиками #5" успешно удалена с маркета')
         result = 'ANTI-BAN: ITEM REMOVED FROM MARKET';
     } else {
-        console.log('NOT ON MARKET yet - adding...');
+        debug('"Коробочка с кубиками #5" нет на маркете, добавляем ее...')
         //
         // Add to market
         //
@@ -91,7 +92,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
                 }
             }
         }
-        console.log('ADD SUCCESS...');
+        debug('"Коробочка с кубиками #5" успешно добавлена на маркет')
         result = 'ANTI-BAN: ITEM ADDED TO MARKET';
     }
     await a.delay(3000);

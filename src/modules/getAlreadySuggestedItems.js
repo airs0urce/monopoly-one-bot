@@ -10,6 +10,7 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
     {
         profile: 'https://monopoly-one.com/profile/1811013',
         profileId: '1811013',
+        profileName: 'Armen',
         items: [
         {
             id: 'thing_17430559',
@@ -25,6 +26,8 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
     }
     */
 
+    const itemsUsed = {};
+
     if (! page && orBrowser) {
         page = await helpers.newPage(orBrowser);
     }
@@ -32,17 +35,19 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
     //
     // Go to trades page
     //
+    debug('Получаем список наших карточек, которые уже использованы в отправленных обменах');
     await page.goto('https://monopoly-one.com/trades', {referer: 'https://monopoly-one.com/m1tv'});
     await page.waitForSelector('[href="/trades/outgoing"]');
-    await a.delay(500);
+    await a.delay(300);
     await page.click('[href="/trades/outgoing"]');
     await page.waitForSelector('.trades-main-list.processing');
     await helpers.waitSelectorDisappears(page, '.trades-main-list.processing');
-    await a.delay(300);
+    await a.delay(400);
 
     //
     // Load more results until page finished
     //
+    debug('Подгружаем все записей если есть кнопка подгрузки');
     await helpers.scrollPageToBottom(page);
     let loadSuccess = false;
     while (loadSuccess = await loadMoreResults(page)) {
@@ -53,11 +58,16 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
     // 
     // Take all items already on trade
     //
+    debug('Парсинг всех предметов отправленных на обмен');
     const results = [];
     const items = await page.$$('div.trades-main-list-one');
     for (let item of items) {
         const profileUrl = await (await item.$('a.trades-main-list-one-user-avatar')).evaluate((el) => {
             return el.href;
+        });
+
+        const profileName = await (await item.$('.trades-main-list-one-user-info-main a')).evaluate((el) => {
+            return el.innerText;
         });
 
         const itemsForSell = await page.$$('.trades-main-list-one-content .trades-main-list-one-content-one._lost .trades-main-list-one-content-one-list > div');
@@ -76,19 +86,26 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
             const id = await itemForSell.evaluate(async (el) => {
                 return el.id;
             });
+
             itemsForSellList.push({
                 id: id,
                 name: name,
                 imagUrl: backgroundImage,
             });
+
+            debug(`Предмет "${name}" с ID "${id}" уже отправлен в обмен (картинка предмета ${backgroundImage})`);
+            itemsUsed[id] = 1;
         }
 
         results.push({
             profileUrl: profileUrl,
             profileId: profileUrl.replace('https://monopoly-one.com/profile/', ''),
+            profileName: profileName,
             items: itemsForSellList,
         })
     }
+
+    debug(`Общее кол-во уже отправленных предметов: ${Object.keys(itemsUsed).length}`);
    
     setTimeout(() => {
         page.close();
@@ -101,6 +118,10 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
 
 async function loadMoreResults(page) {
     const loadingBtn = await page.$('.loadBlock')
+    if (! loadingBtn) {
+        // loading finished
+        return false;
+    }
     const displayCss = await loadingBtn.evaluate(async (el) => {
         return el.style.display;
     });

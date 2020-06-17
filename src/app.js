@@ -1,8 +1,9 @@
 
 process.env.DEBUG = 'mon:*';
-
+const fs = require('fs');
 const config = require('./config')
 const util = require('util');
+const helpers = require('./helpers');
 const puppeteer = require('puppeteer-extra')
 const StealthPlugin = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(StealthPlugin());
@@ -15,23 +16,32 @@ const addOrRemoveFromMarket = require('./modules/addOrRemoveFromMarket');
 const suggestProfileExchange = require('./modules/suggestProfileExchange');
 
 const globals = require('./globals');
-
+const d = require('debug');
+const debug = d(`mon:app`);
 
 
 let browser;
 
 (async () => {
-    await require('./enable-puppeteer-background-only.js');
+    // await require('./enable-puppeteer-background-only.js');
 
+    const sessionFolder  = config.monopoly_auth.username.replace('@', '').replace(/\./g, '');
+    const userDataFolder = __dirname + '/browserUserData/' + sessionFolder;
+
+   
     browser = await puppeteer.launch({
         headless:false,
+        userDataDir: userDataFolder,
         args: [
             `--disable-extensions-except=${__dirname}/../extension/`,
             `--load-extension=${__dirname}/../extension/`,
         ]
     });
 
-    let page = await loginMonopoly(null, browser);
+    const page = await helpers.newPage(browser);    
+
+    await loginMonopoly(page);
+
 
     const alreadySuggestedItems = await getAlreadySuggestedItems(null, browser);
     //await addOrRemoveFromMarket(null, browser);
@@ -41,14 +51,19 @@ let browser;
         for (let item of alreadySuggestedItem.items) {
             globals.addItem('USED_ITEMS', item.id);
         }
-        globals.addItem('SUGGESTED_PROFILES', item.profileUrl);
+        globals.addItem('SUGGESTED_PROFILES', {
+            url: alreadySuggestedItem.profileUrl,
+            name: alreadySuggestedItem.profileName
+        });
     }
 
     // get games
 //+    const games = await getMatchingGamesList(null, browser);
 
     // 
-    await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/1633884');
+    
+    await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/1798548'); // воробушек
+    // await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/awesomo');
 
     
 
@@ -63,8 +78,6 @@ let browser;
 
     // await browser.close()
 })();
-
-
 
 
 
