@@ -93,7 +93,14 @@ exports.waitForCaptcha = async function(page) {
 
     if (captchaResult.captchas.length > 0) {
         result.found = true;
-        result.solved = !!captchaResult.solved[0].isSolved;
+        if (undefined == captchaResult.solved[0]) {
+            console.log('solved is undefined');
+            console.log('captchaResult:', captchaResult);
+            result.solved = false;
+        } else {
+            result.solved = !!captchaResult.solved[0].isSolved;
+        }
+        
         await a.delay(1000);
     }
     console.log('captcha check result:', result);
