@@ -361,7 +361,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     //
 
     // open my items tab
-    await page._cursor.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(1)');
+    await page.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(1)');
     await a.delay(200);
     
 
@@ -394,7 +394,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
 
     // open his items tab
     debug(`${profileName}: открываем его таб`);
-    await page._cursor.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(2)');
+    await page.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(2)');
     await a.delay(400);
 
     debug(`${profileName}: кликаем его кейсы`);
@@ -413,7 +413,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
         }
     }
 
-    await page._cursor.click('input[value="Отправить предложение"]');    
+    await page.click('input[value="Отправить предложение"]');    
     await a.delay(1000);
 
     const captchaResult = await helpers.waitForCaptcha(page);
