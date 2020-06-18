@@ -418,7 +418,15 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     }
 
     await page._cursor.click('input[value="Отправить предложение"]');    
-    
+    await a.delay(1000);
+
+    const captchaResult = await helpers.waitForCaptcha(page);
+    if (captchaResult.found && ! captchaResult.solved) {
+        debug("CAPTCHA FAILED X - RETRYING");
+        const res = await suggestProfileExchange(page, profileUrl);
+        return res;
+    }
+
     await page.waitForSelector('.vueDesignDialog-title');
     const dialogTitle = await (await page.$('.vueDesignDialog-title')).evaluate(async (el) => {
         return el.innerText;
