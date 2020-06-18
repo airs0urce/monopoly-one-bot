@@ -238,7 +238,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     // Remove cards that user already have
     // 
     await page._cursor.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(2)');
-    await a.delay(200);
+    await a.delay(400);
 
     // get another user all items
     let hisItems = [];
@@ -379,7 +379,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     let clicked = 0;
     for (let myItem of myItems) {
         debug(`${profileName}: кликаем свою карточку ${myItem.name}`);
-        await page._cursor.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItem.id}"]:not(._selected)`);
+        await page.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItem.id}"]:not(._selected)`);
         await a.delay(300);
         
         globals.addItem('USED_ITEMS', myItem.id);
@@ -395,14 +395,14 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     // open his items tab
     debug(`${profileName}: открываем его таб`);
     await page._cursor.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(2)');
-    await a.delay(200);
+    await a.delay(400);
 
     debug(`${profileName}: кликаем его кейсы`);
     clicked = 0;
     for (let hisItem of hisItems) {    
 
         debug(`${profileName}: кликаем кейс ${hisItem.name}`);
-        await page._cursor.click(`.block .trades-main-inventories-one:nth-child(2) div.tradesThing:not(._selected) .thing-image > div[style*="${hisItem.imagUrl}"] `);
+        await page.click(`.block .trades-main-inventories-one:nth-child(2) div.tradesThing:not(._selected) .thing-image > div[style*="${hisItem.imagUrl}"] `);
         await a.delay(300);
 
         hisCases.push(hisItem.name);
