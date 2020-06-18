@@ -147,21 +147,14 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     await helpers.waitSelectorDisappears(page, 'div.trades.processing');
     await a.delay(1000);
     debug('debug 2.5');
-    if (captchaResult.found) {
-        debug('debug 3');
-    } else {
-        debug('debug 4');
-
-        const dialog = await page.$('.vueDesignDialog-title');
-        if (dialog) {
-            const restricted = (dialog).evaluate((el) => { return el.innerText.includes('Вы не можете предложить обмен этому игроку') });
-            if (restricted) {
-                debug(`${profileName}: Вы не можете предложить обмен этому игроку. Он ограничивает круг игроков, которые могут присылать ему обмены.`);
-                return;
-            }
+    
+    const dialog = await page.$('.vueDesignDialog-title');
+    if (dialog) {
+        const restricted = (dialog).evaluate((el) => { return el.innerText.includes('Вы не можете предложить обмен этому игроку') });
+        if (restricted) {
+            debug(`${profileName}: Вы не можете предложить обмен этому игроку. Он ограничивает круг игроков, которые могут присылать ему обмены.`);
+            return;
         }
-        
-        debug('debug 6');
     }
     await a.delay(2000);
     
