@@ -68,7 +68,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
         //
         await page.goto('https://monopoly-one.com/inventory');
         await page.waitForSelector('.inventory-items.processing');
-        const captchaResult = await helpers.waitForCaptcha(page);
+        let captchaResult = await helpers.waitForCaptcha(page);
         if (captchaResult.found && ! captchaResult.solved) {
             debug("CAPTCHA FAILED 2 - RETRYING");
             const res = await addOrRemoveFromMarket(page, orBrowser);
@@ -113,7 +113,12 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
 
         await page._cursor.click('.vueDesignDialog-buttons button:nth-child(1)');
         await a.delay(2000);
-        await helpers.waitForCaptcha(page);
+        captchaResult = await helpers.waitForCaptcha(page);
+        if (captchaResult.found && ! captchaResult.solved) {
+            debug("CAPTCHA FAILED 3 - RETRYING");
+            const res = await addOrRemoveFromMarket(page, orBrowser);
+            return res;
+        }
 
         let finishedPuttingOnMarket = false;
         while (! finishedPuttingOnMarket) {
