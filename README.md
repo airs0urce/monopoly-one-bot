@@ -1,7 +1,7 @@
 Как запустить на MacOS
 ======================
 
-1) Установить node.js https://nodejs.org/en/.
+1) Установить node.js https://nodejs.org/en/. Версия от 14.4 и выше.
 2) Скачать код бота https://github.com/airs0urce/monopoly-one-bot/archive/master.zip и распаковать.
 3) Открыть Терминал и зайти в папку, куда распаковали код
    ```bash
