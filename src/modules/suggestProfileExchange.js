@@ -58,10 +58,12 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
 
     setTimeout(async () => {
         // sometimes button doesn't get pressed, here is durty fix
-        const allBtn = await page.$('.title.title-3 a');
-        if (allBtn) {
-            await allBtn.evaluate((el) => { el.click() });
-        }
+        try {
+            const allBtn = await page.$('.title.title-3 a');
+            if (allBtn) {
+                await allBtn.evaluate((el) => { el.click() });
+            }
+        } catch (e) {}
     }, 4000);
 
     //
@@ -119,12 +121,13 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     debug(`${profileName}: Жмем "Предложить обмен"`);
     await page._cursor.click('[href*="/trades/new"]');
     setTimeout(async () => {
-        
-        const stillOnOldPage = !!(await page.$('[href*="/trades/new"]'))
-        if (stillOnOldPage) {
-            // try again
-            await page.click('[href*="/trades/new"]');
-        }
+        try {
+            const stillOnOldPage = !!(await page.$('[href*="/trades/new"]'))
+            if (stillOnOldPage) {
+                // try again
+                await page.click('[href*="/trades/new"]');
+            }
+        } catch (e) {}
     }, 2000)
 
     debug(`${profileName}: Ждем загрузки страницы`);
