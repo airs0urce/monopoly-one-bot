@@ -2,20 +2,24 @@
 ======================
 
 1) Установить node.js https://nodejs.org/en/. Версия от 14.4 и выше.
-2) Скачать код бота https://github.com/airs0urce/monopoly-one-bot/archive/master.zip и распаковать.
-3) Открыть Терминал и зайти в папку, куда распаковали код
+2) Открыть Терминал
+2) Клонировать себе репозиторий 
    ```bash
-   $ cd /Users/airs0urce/Downloads/monopoly-one-bot-master
+   git clone https://github.com/airs0urce/monopoly-one-bot.git
+   ```
+3) Зайти в папку
+   ```bash
+   cd monopoly-one-bot
    ```
 
 4) Установить модули   
    ```bash
-   $ npm install
+   npm install
    ```
-5) Если нужно - изменить настройки в файле config.js
+5) Если нужно - изменить настройки в файле config.js любым текстовым редактором.
 6) Запустить бота
    ```bash
-   $ node start.js
+   node start.js
    ```
 Остановка бота
 =============
@@ -27,7 +31,7 @@
 аккаунта в src/config.js в параметре "monopoly_auth" при следующем запусе будет подгружена последняя сессиия этого аккаунта.
 Чтобы стартовать бот с нуля с пустыми данными сессии для аккаунта, можно запустить бот с флагом "--clear":
    ```bash
-   $ node start.js --clear
+   node start.js --clear
    ```
 
 Настройки
