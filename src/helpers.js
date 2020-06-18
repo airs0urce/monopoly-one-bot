@@ -95,6 +95,6 @@ exports.waitForCaptcha = async function(page) {
         result.solved = !!captchaResult.solved[0].isSolved;
         await a.delay(1000);
     }
-    console.log('result:', result);
+    console.log('captcha check result:', result);
     return result;
 }
