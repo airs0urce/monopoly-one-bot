@@ -12,9 +12,11 @@
     "awaiting": "^3.0.0",
     "debug": "^4.1.1",
     "ghost-cursor": "github:airs0urce/ghost-cursor",
+    "play-sound": "^1.1.3",
     "puppeteer": "^3.3.0",
     "puppeteer-autoscroll-down": "^0.1.5",
     "puppeteer-extra": "^3.1.9",
+    "puppeteer-extra-plugin-recaptcha-2": "^3.1.0",
     "puppeteer-extra-plugin-stealth": "^2.4.9",
     "rimraf": "^3.0.2",
     "uuid": "^8.1.0"

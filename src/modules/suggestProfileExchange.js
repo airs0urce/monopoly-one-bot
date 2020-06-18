@@ -1,15 +1,17 @@
 
 const helpers = require('./../helpers');
-const config = require('./../config');
+const config = require('./../../config');
 const a = require('awaiting');
 const globals = require('./../globals');
 const d = require('debug');
 const util = require('util');
 const addOrRemoveFromMarket = require('./addOrRemoveFromMarket');
+var player = require('play-sound')(opts = {});
 
 
 
-module.exports = async function suggestProfileExchange(browser, profileUrl) {
+
+module.exports = async function suggestProfileExchange(page, profileUrl) {
     const debug = d(`mon:suggestProfileExchange:${profileUrl}`);
     debug(`Начало обработки профайла: ${profileUrl}`);
 
@@ -18,8 +20,6 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         debug(`${alreadySuggestedProfile.name}: Пропускаем профайл, уже есть обмен с этим пользователем`);
         return;
     }
-    
-    const page = await helpers.newPage(browser);
     
     await page.goto(profileUrl, {referer: 'https://monopoly-one.com/m1tv'});
     await helpers.waitSelectorDisappears(page, 'div.profile.processing');
@@ -39,9 +39,8 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         return parseInt(el.innerText, 10);
     });
 
-    if (matchesAmount >= config.profileMaxGames) {
-        debug(`${profileName}: Пропускаем профайл, т.к. кол-во игр ${matchesAmount} (больше ${config.profileMaxGames})`);
-        await page.close();
+    if (matchesAmount >= config.profile_max_games) {
+        debug(`${profileName}: Пропускаем профайл, т.к. кол-во игр ${matchesAmount} (больше ${config.profile_max_games})`);
         return;
     }
 
@@ -54,17 +53,38 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         await page._cursor.click('.title.title-3 a');
     } else {
         debug(`${profileName}: Пропускаем профайл, т.к. инвентарь пустой`);
-        await page.close();
         return;
     }
 
     //
     // wait for loading
     //
+    debug('debug 1');
     await page.waitForSelector('.inventory-items');
-    await page.waitForSelector('.inventory-items.processing');
+    debug('debug 2');
+    const results = await Promise.all([
+        page.waitForSelector('.inventory-items.processing').then(() => {
+            debug('debug 3');
+        }),
+        helpers.waitForCaptcha(page).then((res1) => {
+            debug('debug 4');
+            return res1;
+        })
+    ]);
+
+    debug('debug 5');
+    if (results[1].found && ! results[1].solved) {
+        debug('debug 6');
+        debug("CAPTCHA FAILED 1 - RETRYING");
+        const res = await suggestProfileExchange(page, profileUrl);
+        return res;
+    }
+
+    debug('debug 7');
+    
     await helpers.waitSelectorDisappears(page, '.inventory-items.processing');
     await a.delay(500);
+    debug('debug 8');
 
     //
     // check if user has needed cases
@@ -81,7 +101,6 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
 
     if (! neededCaseExists) {
         debug(`${profileName}: Пропускаем профайл, т.к. нет нужных кейсов`);
-        await page.close();
         return;
     }
 
@@ -101,17 +120,31 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
     }, 2000)
 
     debug(`${profileName}: Ждем загрузки страницы`);
-    const wasCaptcha = await helpers.waitForCaptcha(page);
+    const captchaResult = await helpers.waitForCaptcha(page);
     debug('debug 1');
-    if (wasCaptcha) {
+    if (captchaResult.found && ! captchaResult.solved) {
+        debug("CAPTCHA FAILED 2 - RETRYING");
+        const res = await suggestProfileExchange(page, profileUrl)
+        return res;
+    }
+
+    // if captcha found and solved - good
+    if (captchaResult.found) {
         debug('debug 2');
         await page.waitForSelector('div.trades');
         debug('debug 3');
-        await helpers.waitForCaptcha(page);
+        await a.delay(300);
     } else {
         debug('debug 4');
         await page.waitForSelector('div.trades.processing');
-        debug('debug 5');
+        await a.delay(300);
+
+        const restricted = (await page.$('.vueDesignDialog-title')).evaluate((el) => { return el.innerText.includes('Вы не можете предложить обмен этому игроку') });
+        if (restricted) {
+            debug(`${profileName}: Вы не можете предложить обмен этому игроку. Он ограничивает круг игроков, которые могут присылать ему обмены.`);
+            return;
+        }
+
         await helpers.waitSelectorDisappears(page, 'div.trades.processing');
         debug('debug 6');
     }
@@ -128,7 +161,6 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
             });
             
             debug(`${profileName}: Обмен невозможен. ${errorMessage}`);
-            await page.close();
             return;
         }
     }
@@ -230,7 +262,6 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
 
     if (myItems.length == 0) {
         debug(`${profileName}: Пропускаем профайл. Нет карточек, которые можно предложить, у пользователя уже все есть`);
-        await page.close();
         return;
     }
 
@@ -287,7 +318,6 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         if (ignoredCases.length > 0) {
             debug(`${profileName}: Кейсы, которые были исключены как неподходящие: "${ignoredCases.join('","')}"`);
         }
-        await page.close();
         return;
     } else {
         debug(`${profileName}: Список кейсов, которые нам нужны от юзера: "${casesNames.join('", "')}"`)
@@ -384,6 +414,10 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
 
 
     if (dialogTitle.includes('отправлено')) {
+        if (config.play_sound_when_exchange_suggested) {
+            player.play(__dirname + '/../suggested.wav');
+        }
+
         debug(`${profileName}: Успешно отправили предложение обмена наших карточек "${myCards.join('", "')}" на кейсы "${hisCases.join('", "')}"`)
         globals.addItem('SUGGESTED_PROFILES', {url: profileUrl, name: profileName});
     } else {
@@ -392,8 +426,7 @@ module.exports = async function suggestProfileExchange(browser, profileUrl) {
         process.exit();
     }
 
-    await a.delay(2000);
-    await page.close();
+    await a.delay(1000);
 }
 
 

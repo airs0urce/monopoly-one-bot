@@ -1,6 +1,7 @@
 const installMouseHelper = require('./install-mouse-helper.js').installMouseHelper;
 const createCursor = require("ghost-cursor").createCursor;
 const a = require('awaiting');
+const debug = require('debug')('mon:helpers');
 
 exports.clear = async function clear(page, selector) {
   await page.evaluate(selector => {
@@ -79,13 +80,22 @@ exports.scrollPageToBottom = async function(page, scrollStep = 500, scrollDelay 
 
 
 exports.waitForCaptcha = async function(page) {
-    const captchaExists = !!(page.$('.VueCaptcha'));
-    if (captchaExists) {
-        console.log('FOUND CAPTCHA');
-        await exports.waitSelectorDisappears(page, '.VueCaptcha'); // in case of captcha
-        await a.delay(3000);
-        return true;
+    const result = {
+        found: false,
+        solved: false,
     }
-    return false;
+    await a.delay(1000);
     
+    debug('Проверка на captcha...');
+    await a.delay(2000);
+    const captchaResult = await page.solveRecaptchas();
+    console.log('DEBUG captchaResult:', captchaResult);            
+
+    if (captchaResult.captchas.length > 0) {
+        result.found = true;
+        result.solved = !!captchaResult.solved[0].isSolved;
+        await a.delay(1000);
+    }
+    console.log('result:', result);
+    return result;
 }

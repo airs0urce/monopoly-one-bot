@@ -1,7 +1,7 @@
 
 process.env.DEBUG = 'mon:*';
 const fs = require('fs');
-const config = require('./config')
+const config = require('./../config')
 const util = require('util');
 const helpers = require('./helpers');
 const puppeteer = require('puppeteer-extra')
@@ -20,6 +20,8 @@ const d = require('debug');
 const debug = d(`mon:app`);
 const rimraf = require('rimraf');
 
+const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha-2');
+
 
 let browser;
 
@@ -30,31 +32,45 @@ let browser;
     const sessionFolder  = config.monopoly_auth.username.replace('@', '').replace(/\./g, '');
     const userDataFolder = __dirname + '/browserUserData/' + sessionFolder;
 
-    var args = process.argv.slice(2);
+    const args = process.argv.slice(2);
     if (args.includes('--clear')) {
         debug('запуск с параметром --clear, чистим сессионные данные браузера')
         rimraf.sync(userDataFolder);
     }
-    
-
+   
     // await require('./enable-puppeteer-background-only.js');
-
+    const chromeArgs = [];
+    // if (config.auto_captcha_solver) {
+    //     chromeArgs.push(`--disable-extensions-except=${__dirname}/../extension/`);
+    //     chromeArgs.push(`--load-extension=${__dirname}/../extension/`);
+    // }
+    if (config.auto_captcha_solver) {
+        puppeteer.use(
+            RecaptchaPlugin({
+                provider: {
+                    id: '2captcha',
+                    token: 'b940642def7a66f392ca52e6fa00023c' // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
+                },
+                // visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
+            })
+        );
+    }
 
     debug('Запускаем браузер');
     browser = await puppeteer.launch({
         headless:false,
         userDataDir: userDataFolder,
-        args: [
-            `--disable-extensions-except=${__dirname}/../extension/`,
-            `--load-extension=${__dirname}/../extension/`,
-        ]
+        args: chromeArgs
     });
 
     const page = await helpers.newPage(browser);    
 
-    await loginMonopoly(page);
+    await page.bringToFront();
 
-    const alreadySuggestedItems = await getAlreadySuggestedItems(null, browser);
+    await loginMonopoly(page);
+    await a.delay(1000);
+
+    const alreadySuggestedItems = await getAlreadySuggestedItems(page);
     //await addOrRemoveFromMarket(null, browser);
 
     // add items to globals
@@ -67,8 +83,10 @@ let browser;
             name: alreadySuggestedItem.profileName
         });
     }
+    await a.delay(1000);
 
-    const games = await getMatchingGamesList(null, browser);
+
+    const games = await getMatchingGamesList(page);
 
     let startFromProfile = null;
     //let startFromProfile='https://monopoly-one.com/profile/522832'
@@ -84,10 +102,11 @@ let browser;
         debug(`обработка игроков со стола ${game.title}. Время стола: ${game.min}:${game.sec}`);
         
         for (let player of game.players) {
-            if (handledProfilesCount >= 15) {
+            if (handledProfilesCount >= 20) {
                 // add or remove item from market. Ban protection
                 debug(`${handledProfilesCount} профайлов обработано, удаляем\добавляем вещь на маркет, чтобы избежать банов...`);
-                await addOrRemoveFromMarket(null, browser);
+                await addOrRemoveFromMarket(page);
+                await addOrRemoveFromMarket(page);
                 handledProfilesCount = 0;
             }
 
@@ -97,7 +116,8 @@ let browser;
                 startFromProfile = null;
             }
 
-            await suggestProfileExchange(browser, player.profile_link);
+            const profileResult = await suggestProfileExchange(page, player.profile_link);
+
             handledProfilesCount++ 
         }
     }
@@ -106,7 +126,6 @@ let browser;
     // await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/awesomo');
 
     debug('На этом наши полномочия все!');
-    await browser.close()
 })();
 
 

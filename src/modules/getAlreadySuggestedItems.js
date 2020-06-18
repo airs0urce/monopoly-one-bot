@@ -1,6 +1,7 @@
 
 const a = require('awaiting');
 const helpers = require('./../helpers');
+const config = require('./../../config');
 const uuidv4 = require('uuid').v4;
 const debug = require('debug')('mon:getAlreadySuggestedItems');
 
@@ -55,6 +56,7 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
         await a.delay(helpers.rand(100, 300));
     }
 
+    const alreadyUsed = [];
     // 
     // Take all items already on trade
     //
@@ -99,7 +101,8 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
                 imagUrl: backgroundImage,
             });
 
-            debug(`Предмет "${name}" с ID "${id}" уже использован (картинка ${backgroundImage})`);
+            alreadyUsed.push(`${name} (id: ${id})`);
+
             itemsUsed[id] = 1;
         }
 
@@ -111,11 +114,9 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
         })
     }
 
+    debug(`Уже испоьзованные предметы (${alreadyUsed.length}): "${alreadyUsed.join('","')}"`);
+
     debug(`Общее кол-во уже отправленных предметов: ${Object.keys(itemsUsed).length}`);
-   
-    setTimeout(() => {
-        page.close();
-    }, 500);
 
     return results;
 }

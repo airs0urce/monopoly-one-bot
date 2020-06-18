@@ -1,7 +1,7 @@
 
 const a = require('awaiting');
 const helpers = require('./../helpers');
-const config = require('./../config');
+const config = require('./../../config');
 const uuidv4 = require('uuid').v4;
 const url = require('url');
 const debug = require('debug')('mon:loginMonopoly');
