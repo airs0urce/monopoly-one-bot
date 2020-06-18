@@ -89,7 +89,6 @@ exports.waitForCaptcha = async function(page) {
     debug('Проверка на captcha...');
     await a.delay(2000);
     const captchaResult = await page.solveRecaptchas();
-    console.log('DEBUG captchaResult:', captchaResult);            
 
     if (captchaResult.captchas.length > 0) {
         result.found = true;

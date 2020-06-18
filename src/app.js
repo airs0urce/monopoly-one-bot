@@ -85,20 +85,12 @@ let browser;
     }
     await a.delay(1000);
 
-
     const games = await getMatchingGamesList(page);
 
     let startFromProfile = null;
     //let startFromProfile='https://monopoly-one.com/profile/522832'
 
     for (let game of games) {
-        /*
-        min: 0,
-        sec: 0,
-        title: '',
-        players: [{profile_link: ''}],
-        */
-
         debug(`обработка игроков со стола ${game.title}. Время стола: ${game.min}:${game.sec}`);
         
         for (let player of game.players) {
