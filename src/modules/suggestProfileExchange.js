@@ -130,9 +130,9 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     debug(`${profileName}: Ждем загрузки страницы`);
 
     await page.waitForSelector('div.trades');
-    const captchaResult = await helpers.waitForCaptcha(page);
+    const captchaResult0 = await helpers.waitForCaptcha(page);
     debug('debug 1');
-    if (captchaResult.found && ! captchaResult.solved) {
+    if (captchaResult0.found && ! captchaResult0.solved) {
         debug("CAPTCHA FAILED 2 - RETRYING");
         const res = await suggestProfileExchange(page, profileUrl)
         return res;
