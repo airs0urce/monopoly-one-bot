@@ -66,6 +66,7 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
         let gameTime = await gameListElement.$('.VueGame-stat .VueGame-stat-one-meta div:nth-last-child(1)');
         gameTime = await gameTime.evaluate(el => el.innerHTML);
         // example: '<span>игра идёт</span> 46:28'
+        // example: '<span>игра идёт</span> 1:46:28'
 
         if (gameTime.match(/\d:[\d]{1,2}:[\d]{1,2}/)) {
             // in this case time looks like this: 1:32:11

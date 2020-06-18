@@ -1,0 +1,58 @@
+{
+  "_args": [
+    [
+      "github:airs0urce/ghost-cursor",
+      "/Users/airs0urce/DEV/monopoly"
+    ]
+  ],
+  "_from": "github:airs0urce/ghost-cursor",
+  "_id": "ghost-cursor@github:airs0urce/ghost-cursor#db5cd40e14af25d806dd954b7de50d4b4806df0e",
+  "_inBundle": false,
+  "_integrity": "",
+  "_location": "/ghost-cursor",
+  "_phantomChildren": {},
+  "_requested": {
+    "type": "git",
+    "raw": "github:airs0urce/ghost-cursor",
+    "rawSpec": "github:airs0urce/ghost-cursor",
+    "saveSpec": "github:airs0urce/ghost-cursor",
+    "fetchSpec": null,
+    "gitCommittish": null
+  },
+  "_requiredBy": [
+    "/"
+  ],
+  "_resolved": "github:airs0urce/ghost-cursor#db5cd40e14af25d806dd954b7de50d4b4806df0e",
+  "_spec": "github:airs0urce/ghost-cursor",
+  "_where": "/Users/airs0urce/DEV/monopoly",
+  "author": {
+    "name": "Xetera"
+  },
+  "dependencies": {
+    "bezier-js": "^2.5.1"
+  },
+  "description": "Move your mouse like a human in puppeteer or generate realistic movements on any 2D plane",
+  "devDependencies": {
+    "@types/puppeteer": "^2.0.0",
+    "puppeteer": "^2.0.0",
+    "typescript": "^3.8.0-dev.20200104"
+  },
+  "files": [
+    "lib/**/*"
+  ],
+  "keywords": [
+    "bezier-curve",
+    "mouse-movement",
+    "botting"
+  ],
+  "license": "ISC",
+  "main": "lib/spoof.js",
+  "name": "ghost-cursor",
+  "scripts": {
+    "build": "tsc",
+    "prepare": "yarn build",
+    "test": "exit 0"
+  },
+  "types": "lib/spoof.d.ts",
+  "version": "1.0.3"
+}

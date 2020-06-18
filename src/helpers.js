@@ -1,5 +1,6 @@
 const installMouseHelper = require('./install-mouse-helper.js').installMouseHelper;
-const createCursor = require("ghost-cursor").createCursor;
+const createCursor = require('../vendor/ghost-cursor/lib/spoof.js').createCursor
+
 const a = require('awaiting');
 const debug = require('debug')('mon:helpers');
 
