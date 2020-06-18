@@ -56,7 +56,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
         return;
     }
 
-    setTimeout(() => {
+    setTimeout(async () => {
         // sometimes button doesn't get pressed, here is durty fix
         const allBtn = await page.$('.title.title-3 a');
         if (allBtn) {
