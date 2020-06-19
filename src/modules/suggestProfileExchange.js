@@ -61,7 +61,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
         try {
             const allBtn = await page.$('.title.title-3 a');
             if (allBtn) {
-                await allBtn.evaluate((el) => { el.click() });
+                await allBtn.click();
             }
         } catch (e) {}
     }, 4000);
@@ -70,10 +70,8 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     // wait for loading
     //
     debug('debug 1');
-    await page.waitForSelector('.inventory-items');
-    debug('debug 2');
     const results = await Promise.all([
-        page.waitForSelector('.inventory-items.processing').then(() => {
+        page.waitForSelector('.inventory-items .inventory-items-one').then(() => {
             debug('debug 3');
         }),
         helpers.waitForCaptcha(page).then((res1) => {
