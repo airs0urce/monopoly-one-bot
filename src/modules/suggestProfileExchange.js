@@ -206,7 +206,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
             alreadyUsed: globals.hasItem('USED_ITEMS', id),
             id: id,
             name: name,
-            imagUrl: backgroundImage,
+            imageUrl: backgroundImage,
             el: myItemEl
         });
     }
@@ -219,8 +219,6 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     myItems = myItems.filter((item) => {
         return !item.alreadyUsed;
     });
-
-    debug(`${profileName}: количество доступных карточек у нас без учета уже использованных для обмена: ${myItems.length}`);
 
     //
     // If we used all cards already - let's just finish script 
@@ -241,9 +239,9 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     await a.delay(400);
 
     // get another user all items
-    let hisItems = [];
-    let hisItemEls = await page.$$('.trades-main-inventories-one:nth-child(2) .trades-main-inventories-one-list div.tradesThing');
-    for (let hisItemEl of hisItemEls) {        
+    let hisItemsAll = [];
+    let hisItemAllEls = await page.$$('.trades-main-inventories-one:nth-child(2) .trades-main-inventories-one-list div.tradesThing');
+    for (let hisItemEl of hisItemAllEls) {        
         const name = await (await hisItemEl.$('.thing-image')).evaluate(async (el) => {
             return el.getAttribute('kd-tooltip');
         });
@@ -253,36 +251,22 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
             return backgroundImage;
         });
 
-        hisItems.push({
+        hisItemsAll.push({
             name: name,
-            imagUrl: backgroundImage,
+            imageUrl: backgroundImage,
             el: hisItemEl
         });
     }
 
-    // Remove from my cards those owned by another user
-    const hisImageUrls = hisItems.map((hisItem) => { return hisItem.imageUrl })
-    myItems = myItems.filter((myItem) => {
-        return (! hisImageUrls.includes(myItem.imagUrl))
-    });  
-
-    debug(`${profileName}: исключили из нашего списка карточки, которые уже есть у пользователя. Осталось ${myItems.length}`);
-
-    if (myItems.length == 0) {
-        debug(`${profileName}: Пропускаем профайл. Нет карточек, которые можно предложить, у пользователя уже все есть`);
-        return;
-    }
-
-
-    debug(`${profileName}: у него всего ${hisItems.length} предметов`);
+    debug(`${profileName}: у него всего ${hisItemsAll.length} предметов`);
 
     // Filter by "Cases and Sets"
     await (await page.$('.trades-main-inventories-one:nth-child(2) ._filter [design-selecter-value="containers"]')).evaluate((el) => { el.click() })
     await a.delay(250);
 
     // get only cases and sets of another user
-    hisItems = [];
-    hisItemEls = await page.$$('.trades-main-inventories-one:nth-child(2) .trades-main-inventories-one-list div.tradesThing[mnpl-filter="1"]');
+    let hisItems = [];
+    let hisItemEls = await page.$$('.trades-main-inventories-one:nth-child(2) .trades-main-inventories-one-list div.tradesThing[mnpl-filter="1"]');
 
     // IMPORTANT: HIDE ALL .selecter-options as they make a problem whne we move cursor
     // elements can appear and user wil click them instead of cases
@@ -314,12 +298,13 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
 
         hisItems.push({
             name: name,
-            imagUrl: backgroundImage,
+            imageUrl: backgroundImage,
             el: hisItemEl
         });
     }
 
 
+    
     const casesNames = hisItems.map((el) => { return el.name });
     if (casesNames.length == 0) {
         debug(`${profileName}: У пользователя нет кейсов, которые нам нужны.`);
@@ -327,33 +312,60 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
             debug(`${profileName}: Кейсы, которые были исключены как неподходящие: "${ignoredCases.join('","')}"`);
         }
         return;
-    } else {
-        debug(`${profileName}: Список кейсов, которые нам нужны от юзера: "${casesNames.join('", "')}"`)
+    }
+    debug(`${profileName}: ${casesNames.length} кейсов, которые нам нужны от юзера: "${casesNames.join('", "')}"`)
+
+
+    // Remove from my cards those owned by another user
+    const hisImageUrls = hisItemsAll.map((hisItem) => { return hisItem.imageUrl })
+    let myItemsSuggest = myItems.filter((myItem) => {
+        return (! hisImageUrls.includes(myItem.imageUrl))
+    });  
+
+    debug(`${profileName}: У нас карточек не считая тех, что уже в обменах: ${myItems.length}`);
+    debug(`${profileName}: У нас карточек не считая тех, что есть у пользователя: ${myItemsSuggest.length}`);
+
+    if (myItemsSuggest.length < hisItems.length) {
+        debug(`${profileName}: Не хватает карточек для предложения. Надо взять ${hisItems.length} кейсов у юзера. Предложим еще ${hisItems.length - myItemsSuggest.length} карточек, которые уже есть у юзера, а шо делать?`);
+        
+        // TODO: обработать дополнительно        
+        const alreadySuggestUrls = myItemsSuggest.map((item) => { return item.imageUrl});        
+        for (let i = 0; i < myItems.length; i++) {
+            if (! alreadySuggestUrls.contains(myItems[i].imageUrl)) {
+                debug(`${profileName}: Добавляем карточку ${myItems[i].name}`)
+                myItemsSuggest.push(myItems[i]);
+                if (myItemsSuggest.length >= hisItems.length) {
+                    break;
+                }
+            }
+        }
+    }
+
+    if (myItemsSuggest.length == 0) {
+        debug(`${profileName}: Опа, а в итоге и предложить-то совсем нечего. Завершаем скрипт. Нужно докупить карточек, т.к. мы уже все отправили в предыдущим юзерам`);
+        process.exit();
     }
 
 
     //
-    // Now "myItems" contains only cards that we can suggest to user. 
+    // Now "myItemsSuggest" contains only cards that we will suggest to user. 
     // and "hisItems" contains items that we need to get
     // So, let's do it 
     //
-
-
-    debug(`${profileName}: Итак, у нас ${myItems.length} карточек, а у юзера ${hisItems.length} кейсов, которые надо забрать`);
     
-    const myCards = [];
+    
     const hisCases = [];
     let exchangeAmount = 0;
 
-    if (myItems.length > hisItems.length) {
-        debug(`${profileName}: У нас больше карточек, чем у него кейсов, так что предложим обмен ${hisItems.length} карточек на ${hisItems.length} кейсов`)        
+    if (myItemsSuggest.length > hisItems.length) {
+        debug(`${profileName}: У нас больше карточек для предложения, чем у него кейсов, так что предложим обмен ${hisItems.length} карточек на ${hisItems.length} кейсов`)        
         exchangeAmount = hisItems.length;
-    } else if (myItems.length < hisItems.length) {
-        debug(`${profileName}: У нас меньше карточек, чем у него кейсов. Значит, возьмем ${myItems.length} шт. наших карточек и попросим первые ${myItems.length} кейсов на обмен. Остальные кейсы обработай вручную, купив карточки.`)
-        exchangeAmount = myItems.length;
-    } else if (myItems.length == hisItems.length) {
-        debug(`${profileName}: У нас карточек сколько же, сколько у него кейсов. Предлагаем обмен ${hisItems.length} на ${hisItems.length}`)
-        exchangeAmount = hisItems.length;
+    } else if (myItemsSuggest.length < hisItems.length) {
+        debug(`${profileName}: У нас меньше карточек, чем у него кейсов. Значит, возьмем ${myItemsSuggest.length} шт. наших карточек и попросим первые ${myItemsSuggest.length} кейсов на обмен. Остальные кейсы обработай вручную, купив карточки.`)
+        exchangeAmount = myItemsSuggest.length;
+    } else if (myItemsSuggest.length == hisItems.length) {
+        debug(`${profileName}: У нас карточек сколько же, сколько у него кейсов. Предлагаем обмен ${myItemsSuggest.length} на ${hisItems.length}`)
+        exchangeAmount = myItemsSuggest.length;
     }
 
     //
@@ -374,17 +386,16 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     });
     await a.delay(250);
 
-    debug(`${profileName}: кликаем мои карточки для добавления в обмен`);
-
     let clicked = 0;
-    for (let myItem of myItems) {
-        debug(`${profileName}: кликаем свою карточку ${myItem.name}`);
-        await page.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItem.id}"]:not(._selected)`);
+    const mySuggestedCards = [];
+    for (let myItemSuggest of myItemsSuggest) {
+        debug(`${profileName}: кликаем свою карточку ${myItemSuggest.name}`);
+        await page.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItemSuggest.id}"]:not(._selected)`);
         await a.delay(300);
         
-        globals.addItem('USED_ITEMS', myItem.id);
+        globals.addItem('USED_ITEMS', myItemSuggest.id);
 
-        myCards.push(myItem.name);
+        mySuggestedCards.push(myItemSuggest.name);
 
         clicked++
         if (clicked >= exchangeAmount) {
@@ -397,12 +408,11 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     await page.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(2)');
     await a.delay(400);
 
-    debug(`${profileName}: кликаем его кейсы`);
     clicked = 0;
     for (let hisItem of hisItems) {    
 
-        debug(`${profileName}: кликаем кейс ${hisItem.name}`);
-        await page.click(`.block .trades-main-inventories-one:nth-child(2) div.tradesThing:not(._selected) .thing-image > div[style*="${hisItem.imagUrl}"] `);
+        debug(`${profileName}: кликаем его кейс ${hisItem.name}`);
+        await page.click(`.block .trades-main-inventories-one:nth-child(2) div.tradesThing:not(._selected) .thing-image > div[style*="${hisItem.imageUrl}"] `);
         await a.delay(300);
 
         hisCases.push(hisItem.name);
@@ -413,6 +423,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
         }
     }
 
+await a.delay(44343434);
     await page.click('input[value="Отправить предложение"]');    
     await a.delay(1000);
 
@@ -434,7 +445,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
             player.play(__dirname + '/../suggested.wav');
         }
 
-        debug(`${profileName}: Успешно отправили предложение обмена наших карточек "${myCards.join('", "')}" на кейсы "${hisCases.join('", "')}"`)
+        debug(`${profileName}: Успешно отправили предложение обмена наших карточек "${mySuggestedCards.join('", "')}" на кейсы "${hisCases.join('", "')}"`)
         globals.addItem('SUGGESTED_PROFILES', {url: profileUrl, name: profileName});
     } else {
         debug(`${profileName}: Что-то пошло не так :( Сообщение: ${dialogTitle}`);
