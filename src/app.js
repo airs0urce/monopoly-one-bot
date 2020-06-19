@@ -85,7 +85,7 @@ let browser;
     }
     await a.delay(1000);
 
-    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1128336');
+    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1644565');
     // await a.delay(1043434343);
 
 

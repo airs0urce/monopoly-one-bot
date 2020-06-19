@@ -316,6 +316,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
 
     // Remove from my cards those owned by another user
     const hisImageUrls = hisItemsAll.map((hisItem) => { return hisItem.imageUrl })
+
     let myItemsSuggest = myItems.filter((myItem) => {
         return (! hisImageUrls.includes(myItem.imageUrl))
     });  
@@ -365,7 +366,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
 
 
     if (myItemsSuggest.length > hisItems.length) {
-        debug(`${profileName}: У нас больше карточек для предложения, чем у него кейсов, так что предложим обмен ${hisItems.length} карточек на ${hisItems.length} кейсов`)        
+        debug(`${profileName}: У нас больше карточек для предложения, чем у него кейсов, так что предложим ${hisItems.length + config.cards_suggest_over_need} карточек на ${hisItems.length} кейсов`)        
         exchangeAmountMe = hisItems.length + config.cards_suggest_over_need;
         exchangeAmountHim = hisItems.length;
     } else if (myItemsSuggest.length < hisItems.length) {
@@ -399,18 +400,44 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
 
     let clicked = 0;
     const mySuggestedCards = [];
-    for (let myItemSuggest of myItemsSuggest) {
-        debug(`${profileName}: кликаем свою карточку ${myItemSuggest.name}`);
-        await page.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItemSuggest.id}"]:not(._selected)`);
-        await a.delay(300);
-        
-        globals.addItem('USED_ITEMS', myItemSuggest.id);
 
-        mySuggestedCards.push(myItemSuggest.name);
+    // тут надо постараться не предлагать одинаковые карточки
+    let times = exchangeAmountMe;
+    while (times > 0) {
 
-        clicked++
+        for (let myItemSuggest of myItemsSuggest) {
+            if (mySuggestedCards.includes(myItemSuggest.name)) {
+                continue;
+            }
+            debug(`${profileName}: кликаем свою карточку ${myItemSuggest.name}`);
+            await clickMyCard(myItemSuggest, page);
+            globals.addItem('USED_ITEMS', myItemSuggest.id);
+            mySuggestedCards.push(myItemSuggest.name);
+            clicked++
+            break;
+        }
+
+
         if (clicked >= exchangeAmountMe) {
             break;
+        }
+
+        times--;
+
+        if (times == 0 && mySuggestedCards.length < exchangeAmountMe) {
+            let addRandomCardsAmount = exchangeAmountMe - mySuggestedCards.length;
+            while (addRandomCardsAmount > 0) {
+                for (let myItemSuggestNew of myItemsSuggest) {
+                    if (!globals.hasItem('USED_ITEMS', myItemSuggestNew.id)) {
+                        debug(`${profileName}: кликаем свою карточку ${myItemSuggestNew.name}`);
+                        await clickMyCard(myItemSuggestNew, page);
+                        globals.addItem('USED_ITEMS', myItemSuggestNew.id);
+                        mySuggestedCards.push(myItemSuggestNew.name);
+                        break;
+                    }
+                }
+                addRandomCardsAmount--;
+            }
         }
     }
 
@@ -480,7 +507,10 @@ function getSuggestedProfileByUrl(profileUrl) {
 }
 
 
-
+async function clickMyCard(myItemSuggest, page) {
+    await page.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItemSuggest.id}"]:not(._selected)`);
+    await a.delay(300);
+}
 
 
 
