@@ -329,7 +329,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
         // TODO: обработать дополнительно        
         const alreadySuggestUrls = myItemsSuggest.map((item) => { return item.imageUrl});        
         for (let i = 0; i < myItems.length; i++) {
-            if (! alreadySuggestUrls.contains(myItems[i].imageUrl)) {
+            if (! alreadySuggestUrls.includes(myItems[i].imageUrl)) {
                 debug(`${profileName}: Добавляем карточку ${myItems[i].name}`)
                 myItemsSuggest.push(myItems[i]);
                 if (myItemsSuggest.length >= (hisItems.length + config.cards_suggest_over_need)) {
