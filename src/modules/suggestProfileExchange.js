@@ -423,7 +423,6 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
         }
     }
 
-await a.delay(44343434);
     await page.click('input[value="Отправить предложение"]');    
     await a.delay(1000);
 
