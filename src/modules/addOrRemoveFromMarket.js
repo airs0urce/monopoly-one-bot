@@ -93,7 +93,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
 
         setTimeout(async () => {
             try {
-                const exists = !!(await page.$$('.inventory-marketSell-costs-value input'));
+                const exists = !!(await page.$('.inventory-marketSell-costs-value input'));
                 if (! exists) {
                     const elToClick = await page.$('.InventoryHelper-body-buttons div:nth-child(2)');
                     if (elToClick) {
@@ -103,7 +103,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
                     }
                 }
             } catch (e) {}
-        }, 1000);
+        }, 1500);
         
 
         await page.waitForSelector('.inventory-marketSell-costs-value input');
