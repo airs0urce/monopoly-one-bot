@@ -353,17 +353,23 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     
     
     const hisCases = [];
-    let exchangeAmount = 0;
+    let exchangeAmountMe = 0;
+    let exchangeAmountHim = 0;
+
 
     if (myItemsSuggest.length > hisItems.length) {
         debug(`${profileName}: У нас больше карточек для предложения, чем у него кейсов, так что предложим обмен ${hisItems.length} карточек на ${hisItems.length} кейсов`)        
-        exchangeAmount = hisItems.length;
+        exchangeAmountMe = hisItems.length + config.cards_suggest_over_need;
+        exchangeAmountHim = hisItems.length;
     } else if (myItemsSuggest.length < hisItems.length) {
-        debug(`${profileName}: У нас меньше карточек, чем у него кейсов. Значит, возьмем ${myItemsSuggest.length} шт. наших карточек и попросим первые ${myItemsSuggest.length} кейсов на обмен. Остальные кейсы обработай вручную, купив карточки.`)
-        exchangeAmount = myItemsSuggest.length;
+        debug(`${profileName}: У нас меньше карточек, чем у него кейсов. Значит, возьмем ${myItemsSuggest.length} шт. наших карточек и попросим первые ${hisItems.length} кейсов на обмен. Остальные кейсы обработай вручную, купив карточки.`)
+
+        exchangeAmountMe = myItemsSuggest.length;
+        exchangeAmountHim = hisItems.length;
     } else if (myItemsSuggest.length == hisItems.length) {
         debug(`${profileName}: У нас карточек сколько же, сколько у него кейсов. Предлагаем обмен ${myItemsSuggest.length} на ${hisItems.length}`)
-        exchangeAmount = myItemsSuggest.length;
+        exchangeAmountMe = myItemsSuggest.length;
+        exchangeAmountHim = hisItems.length;
     }
 
     //
@@ -396,7 +402,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
         mySuggestedCards.push(myItemSuggest.name);
 
         clicked++
-        if (clicked >= exchangeAmount) {
+        if (clicked >= exchangeAmountMe) {
             break;
         }
     }
@@ -416,7 +422,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
         hisCases.push(hisItem.name);
 
         clicked++
-        if (clicked >= exchangeAmount) {
+        if (clicked >= exchangeAmountHim) {
             break;
         }
     }

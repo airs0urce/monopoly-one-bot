@@ -112,8 +112,8 @@ let browser;
                 startFromProfile = null;
             }
 
-            const profileResult = await suggestProfileExchange(page, player.profile_link);
-
+            await suggestProfileExchange(page, player.profile_link);
+            
             handledProfilesCount++ 
         }
     }
