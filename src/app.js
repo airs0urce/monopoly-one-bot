@@ -98,7 +98,7 @@ let browser;
         debug(`обработка игроков со стола ${game.title}. Время стола: ${game.min}:${game.sec}`);
         
         for (let player of game.players) {
-            if (handledProfilesCount >= 20) {
+            if (handledProfilesCount >= 17) {
                 // add or remove item from market. Ban protection
                 debug(`${handledProfilesCount} профайлов обработано, удаляем\добавляем вещь на маркет, чтобы избежать банов...`);
                 await addOrRemoveFromMarket(page);
