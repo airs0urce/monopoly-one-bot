@@ -332,7 +332,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
             if (! alreadySuggestUrls.contains(myItems[i].imageUrl)) {
                 debug(`${profileName}: Добавляем карточку ${myItems[i].name}`)
                 myItemsSuggest.push(myItems[i]);
-                if (myItemsSuggest.length >= hisItems.length) {
+                if (myItemsSuggest.length >= (hisItems.length + config.cards_suggest_over_need)) {
                     break;
                 }
             }
