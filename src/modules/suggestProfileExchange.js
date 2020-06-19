@@ -323,8 +323,15 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     debug(`${profileName}: У нас карточек не считая тех, что уже в обменах: ${myItems.length}`);
     debug(`${profileName}: У нас карточек не считая тех, что есть у пользователя: ${myItemsSuggest.length}`);
 
-    if (myItemsSuggest.length < hisItems.length) {
-        debug(`${profileName}: Не хватает карточек для предложения. Надо взять ${hisItems.length} кейсов у юзера. Предложим еще ${hisItems.length - myItemsSuggest.length} карточек, которые уже есть у юзера, а шо делать?`);
+    const needTotalToSuggest = (hisItems.length + config.cards_suggest_over_need);
+    if (myItemsSuggest.length < needTotalToSuggest) {
+        if (myItemsSuggest.length < hisItems.length) {
+            debug(`${profileName}: Не хватает карточек для предложения. Надо взять ${hisItems.length} кейсов у юзера. Предложим еще ${hisItems.length - myItemsSuggest.length} карточек, которые уже есть у юзера, а шо делать?`);
+        } else {
+            debug(`${profileName}: Не хватает карточек для предложения чтобы предложить на ${config.cards_suggest_over_need} больше. Надо взять ${hisItems.length} кейсов у юзера.`);
+            debug(`Предложим еще ${needTotalToSuggest - myItemsSuggest.length} карточек, которые уже есть у юзера, а шо делать?`);
+        }
+        
         
         // TODO: обработать дополнительно        
         const alreadySuggestUrls = myItemsSuggest.map((item) => { return item.imageUrl});        
@@ -332,7 +339,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
             if (! alreadySuggestUrls.includes(myItems[i].imageUrl)) {
                 debug(`${profileName}: Добавляем карточку ${myItems[i].name}`)
                 myItemsSuggest.push(myItems[i]);
-                if (myItemsSuggest.length >= (hisItems.length + config.cards_suggest_over_need)) {
+                if (myItemsSuggest.length >= needTotalToSuggest) {
                     break;
                 }
             }
