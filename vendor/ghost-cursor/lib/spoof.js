@@ -152,7 +152,18 @@ exports.createCursor = function (page, start) {
                 case 1:
                     if (!!vectors_1_1.done) return [3, 4];
                     _a = vectors_1_1.value, x = _a.x, y = _a.y;
-                    return [4, page.mouse.move(x, y)];
+                    var res;    
+                    try {
+                        res = page.mouse.move(x, y);
+                    } catch (e) {
+                        console.log("FOUND ERROR");
+                        console.log("x type", typeof x);
+                        console.log("x =", x);
+                        console.log("y type", typeof y);
+                        console.log("y =", y);
+                    }
+
+                    return [4, res];
                 case 2:
                     _c.sent();
                     _c.label = 3;
