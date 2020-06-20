@@ -127,7 +127,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
         await page.waitForSelector('.inventory-marketSell-costs-value input');
         await page._cursor.click('.inventory-marketSell-costs-value input');
         await helpers.clear(page, '.inventory-marketSell-costs-value input');
-        const priceToType = helpers.rand(450, 500).toString();
+        const priceToType = helpers.rand(280, 510).toString();
         await page.type('.inventory-marketSell-costs-value input', priceToType, {delay: 60});
         await a.delay(1000);
 

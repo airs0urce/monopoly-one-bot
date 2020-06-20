@@ -77,15 +77,17 @@ let browser;
     // await addOrRemoveFromMarket(null, browser);
     // await addOrRemoveFromMarket(null, browser);
     // await a.delay(2000000);    
-
     const alreadySuggestedItems = await getAlreadySuggestedItems(page);
    
-
     // add items to globals
     for (let alreadySuggestedItem of alreadySuggestedItems) {
-        for (let item of alreadySuggestedItem.items) {
-            globals.addItem('USED_ITEMS', item.id);
+
+        if (config.consider_cards_from_sent_suggestions) {
+            for (let item of alreadySuggestedItem.items) {
+                globals.addItem('USED_ITEMS', item.id);
+            }
         }
+
         globals.addItem('SUGGESTED_PROFILES', {
             url: alreadySuggestedItem.profileUrl,
             name: alreadySuggestedItem.profileName
