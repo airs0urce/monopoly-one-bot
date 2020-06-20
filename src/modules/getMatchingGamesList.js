@@ -42,8 +42,8 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
     const gameListElements = await page.$$('div.m1tvLive-games-list div.VueGame');
     for (let gameListElement of gameListElements) {
         const game = {
-            min: 0,
-            sec: 0,
+            timeString: '0:0:0',
+            minutes: 0,
             title: '',
             players: [],
         };
@@ -63,30 +63,30 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
         // =================================
         // Get game time
         // =================================
+
         let gameTime = await gameListElement.$('.VueGame-stat .VueGame-stat-one-meta div:nth-last-child(1)');
         gameTime = await gameTime.evaluate(el => el.innerHTML);
-        // example: '<span>игра идёт</span> 46:28'
-        // example: '<span>игра идёт</span> 1:46:28'
 
-        if (gameTime.match(/\d:[\d]{1,2}:[\d]{1,2}/)) {
-            // in this case time looks like this: 1:32:11
-            // so, it's longer than 1 hour and we don't need this game for sure as we need from 0 to config.game_maximal_minutes
-            
-            debug(`Игнорируем игру по причине неподходящего времени "${gameTime}"`);
+        const gameTimeNumbers = gameTime.match(/(\d{1,2}:)?\d{1,2}:\d{1,2}/)[0];
+        const timePartsParsed = gameTimeNumbers.split(':');
+        const timeParts = {h: 0, m: 0, s: 0};
+        if (timePartsParsed.length == 3) {
+            timeParts.h = parseInt(timePartsParsed[0], 10);
+            timeParts.m = parseInt(timePartsParsed[1], 10);
+            timeParts.s = parseInt(timePartsParsed[2], 10);
+        } else {
+            timeParts.m = parseInt(timePartsParsed[0], 10);
+            timeParts.s = parseInt(timePartsParsed[1], 10);
+        }
+
+        const totalMinutes = (timeParts.h * 60) + timeParts.m;
+        if (totalMinutes > config.game_maximal_minutes) {
+            debug(`Пропускаем "${gameTitle}", т.к время "${gameTimeNumbers}", т.е. ${totalMinutes} минут, а нам надо максимум ${config.game_maximal_minutes}`);
             continue;
         }
-        const gameTimeMatch = gameTime.match(/[\d]{1,2}:[\d]{1,2}/);
-        if (!gameTimeMatch) {
-            console.log(`TIME DIDN'T MATCH: ${gameTime}`);
-        }
-        let [gameMin, gameSec] = gameTimeMatch[0].split(':');
-        game.min = parseInt(gameMin, 10);
-        game.sec = parseInt(gameSec, 10);
-        if (game.min > config.game_maximal_minutes) {
-            // ignore this game as we need games from 0 to "config.game_maximal_minutes" min
-            console.log('IGNORE GAME REASON: time is "' + gameTime + '"');
-            continue;
-        }
+        game.minutes = totalMinutes;
+        game.timeString = gameTimeNumbers;
+        
 
 
         // =================================
@@ -107,8 +107,6 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
                 console.log(await gamePlayer.evaluate(el => el.innerHTML));
                 console.log('---');
             }
-
-
             game.players.push(player);
         }
 

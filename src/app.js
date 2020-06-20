@@ -105,7 +105,7 @@ let browser;
     //let startFromProfile='https://monopoly-one.com/profile/522832'
 
     for (let game of games) {
-        debug(`обработка игроков со стола ${game.title}. Время стола: ${game.min}:${game.sec}`);
+        debug(`обработка игроков со стола ${game.title}. Время стола: ${game.timeString}`);
         
         for (let player of game.players) {
             if (handledProfilesCount >= 17) {
