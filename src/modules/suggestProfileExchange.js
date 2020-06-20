@@ -11,7 +11,7 @@ var player = require('play-sound')(opts = {});
 
 
 
-module.exports = async function suggestProfileExchange(page, profileUrl) {
+module.exports = async function suggestProfileExchange(page, profileUrl, precheckCaptcha = false) {
     const debug = d(`mon:suggestProfileExchange:${profileUrl}`);
     debug(`Начало обработки профайла: ${profileUrl}`);
 
@@ -22,10 +22,23 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     }
     
     await page.goto(profileUrl, {referer: 'https://monopoly-one.com/m1tv'});
-    await helpers.waitSelectorDisappears(page, 'div.profile.processing');
+    
+    await page.waitForSelector('div.profile');
+
+    
+    if (precheckCaptcha) {
+        let captchaResult = await helpers.waitForCaptcha(page);
+        if (captchaResult.found && ! captchaResult.solved) {
+            debug("CAPTCHA FAILED 2 - RETRYING");
+            const res = await suggestProfileExchange(page, profileUrl, true);
+            return res;
+        }
+    }
+
     await a.delay(500);
 
 
+    await helpers.waitSelectorDisappears(page, 'div.profile.processing');
     // add profile to list of profiles where we already suggested exchange
     const profileName = await (await page.$('span._nick')).evaluate((el) => {
         return el.innerText;
@@ -84,7 +97,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     if (results[1].found && ! results[1].solved) {
         debug('debug 6');
         debug("CAPTCHA FAILED 1 - RETRYING");
-        const res = await suggestProfileExchange(page, profileUrl);
+        const res = await suggestProfileExchange(page, profileUrl, true);
         return res;
     }
 
@@ -135,7 +148,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     debug('debug 1');
     if (captchaResult0.found && ! captchaResult0.solved) {
         debug("CAPTCHA FAILED 2 - RETRYING");
-        const res = await suggestProfileExchange(page, profileUrl)
+        const res = await suggestProfileExchange(page, profileUrl, true)
         return res;
     }
 
@@ -467,7 +480,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl) {
     const captchaResult = await helpers.waitForCaptcha(page);
     if (captchaResult.found && ! captchaResult.solved) {
         debug("CAPTCHA FAILED X - RETRYING");
-        const res = await suggestProfileExchange(page, profileUrl);
+        const res = await suggestProfileExchange(page, profileUrl, true);
         return res;
     }
 

@@ -5,10 +5,11 @@ const uuidv4 = require('uuid').v4;
 const config = require('./../../config');
 const debug = require('debug')('mon:addOrRemoveFromMarket');
 
-module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
+module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckCaptcha = false) {
     if (! page && orBrowser) {
         page = await helpers.newPage(orBrowser);
     }
+    
     
     //
     // Check if it's on market already
@@ -17,10 +18,22 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
     await page.goto('https://monopoly-one.com/market/my', {referer: 'https://monopoly-one.com/market'});     
     debug('debug 1')
     await page.waitForSelector('.market-list');
+    
+    if (precheckCaptcha) {
+        let captchaResult = await helpers.waitForCaptcha(page);
+        if (captchaResult.found && ! captchaResult.solved) {
+            debug("CAPTCHA FAILED 2 - RETRYING");
+            const res = await addOrRemoveFromMarket(page, orBrowser, true);
+            return res;
+        }
+    }
+
     await a.delay(1000);
     debug('debug 2')
     await helpers.waitSelectorDisappears(page, '.market-list.processing');
     debug('debug 3')
+
+
     
 
     const korobochka5El = await page.$(`[style*="dices-5.png"]`);
@@ -42,7 +55,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
 
         if (captchaResult.found && ! captchaResult.solved) {
             debug("CAPTCHA FAILED 1 - RETRYING");
-            const res = await addOrRemoveFromMarket(page, orBrowser);
+            const res = await addOrRemoveFromMarket(page, orBrowser, true);
             return res;
         }
 
@@ -71,23 +84,28 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
         let captchaResult = await helpers.waitForCaptcha(page);
         if (captchaResult.found && ! captchaResult.solved) {
             debug("CAPTCHA FAILED 2 - RETRYING");
-            const res = await addOrRemoveFromMarket(page, orBrowser);
+            const res = await addOrRemoveFromMarket(page, orBrowser, true);
             return res;
         }
-
+        debug('debug a1');
         let loaded2 = false;
         while (!loaded2) {
+            debug('debug a2');
             await a.delay(500);
             loaded2 = await page.$('.inventory-items') && !(await page.$('.inventory-items.processing'))
         }
 
-        
+        debug('debug a3');
         await page.waitForSelector('[style*="dices-5.png"]');
+        debug('debug a4');
         await page._cursor.click('[style*="dices-5.png"]');
+        debug('debug a5');
         await page.waitForSelector('.InventoryHelper-body-buttons div:nth-child(2)');
+        debug('debug a6');
         await a.delay(200);
         await helpers.scrollToElement(await page.$('.InventoryHelper-body-buttons div:nth-child(2)'));
         await a.delay(500);
+        debug('debug a7');
 
         await page._cursor.click('.InventoryHelper-body-buttons div:nth-child(2)');
 
@@ -118,7 +136,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser) {
         captchaResult = await helpers.waitForCaptcha(page);
         if (captchaResult.found && ! captchaResult.solved) {
             debug("CAPTCHA FAILED 3 - RETRYING");
-            const res = await addOrRemoveFromMarket(page, orBrowser);
+            const res = await addOrRemoveFromMarket(page, orBrowser, true);
             return res;
         }
 

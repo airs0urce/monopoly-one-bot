@@ -63,6 +63,7 @@ let browser;
         args: chromeArgs
     });
 
+
     const page = await helpers.newPage(browser);    
 
     await page.bringToFront();
@@ -70,8 +71,15 @@ let browser;
     await loginMonopoly(page);
     await a.delay(1000);
 
+
+    // await addOrRemoveFromMarket(null, browser);
+    // await addOrRemoveFromMarket(null, browser);
+    // await addOrRemoveFromMarket(null, browser);
+    // await addOrRemoveFromMarket(null, browser);
+    // await a.delay(2000000);    
+
     const alreadySuggestedItems = await getAlreadySuggestedItems(page);
-    //await addOrRemoveFromMarket(null, browser);
+   
 
     // add items to globals
     for (let alreadySuggestedItem of alreadySuggestedItems) {
