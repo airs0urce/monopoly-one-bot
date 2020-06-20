@@ -121,10 +121,6 @@ module.exports = async function getMatchingGamesList(page, orBrowser) {
 
     debug(`Получение всех игроков со столов M1TV - успешно. Всего подходящих нам игр ${gameList.length}. Всего игроков: ${playersAmount}`);
 
-    if (gameList.length == 0) {
-        await a.delay(1000 * 60 * 60);
-    }
-
     return gameList;
 }
 
