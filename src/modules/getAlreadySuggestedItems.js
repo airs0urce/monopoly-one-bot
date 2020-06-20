@@ -48,7 +48,7 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
     //
     // Load more results until page finished
     //
-    debug('Подгружаем все записей если есть кнопка подгрузки');
+    debug('Подгружаем все записи если есть кнопка подгрузки');
     await helpers.scrollPageToBottom(page);
     let loadSuccess = false;
     while (loadSuccess = await loadMoreResults(page)) {
@@ -60,7 +60,10 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
     // 
     // Take all items already on trade
     //
-    debug('Парсинг всех предметов отправленных на обмен');
+    if (config.consider_cards_from_sent_suggestions) {
+        debug('Парсинг всех предметов отправленных на обмен');
+    }
+
     const results = [];
     const items = await page.$$('div.trades-main-list-one');
     const handledIds = [];
