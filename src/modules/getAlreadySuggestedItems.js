@@ -36,7 +36,12 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
     //
     // Go to trades page
     //
-    debug('Получаем список наших карточек, которые уже использованы в отправленных обменах');
+    if (config.consider_cards_from_sent_suggestions) {
+        debug('Получаем список карточек и игроков, которые уже использованы в отправленных обменах');
+    } else {
+        debug('Получаем список игроков, которые уже использованы в отправленных обменах');
+    }
+    
     await page.goto('https://monopoly-one.com/trades', {referer: 'https://monopoly-one.com/m1tv'});
     await page.waitForSelector('[href="/trades/outgoing"]');
     await a.delay(300);
