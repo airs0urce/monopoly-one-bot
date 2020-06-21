@@ -155,8 +155,13 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     
     debug('debug 2');
     await page.waitForSelector('div.trades');
-    await helpers.waitSelectorDisappears(page, 'div.trades.processing');
-    await a.delay(1000);
+
+    await a.single([
+        helpers.waitSelectorDisappears(page, 'div.trades.processing'),
+        page.$('.vueDesignDialog-title')
+    ]);
+    
+    await a.delay(400);
     debug('debug 2.5');
     
     const dialog = await page.$('.vueDesignDialog-title');
