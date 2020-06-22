@@ -74,7 +74,12 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     const allBtnExists = !!(await page.$('.title.title-3 a'));
     if (allBtnExists) {
         debug('Кнопка "Все" найдена, кликаем...')
-        await page._cursor.click('.title.title-3 a');
+        try {
+            await page._cursor.click('.title.title-3 a');
+        } catch(e) {
+            throw Error('ERROR CLICKING VSE BUTTON');
+            return await suggestProfileExchange(page, profileUrl, precheckCaptcha);
+        }
     } else {
         debug(`${profileName}: Пропускаем профайл, т.к. инвентарь пустой`);
         return;
