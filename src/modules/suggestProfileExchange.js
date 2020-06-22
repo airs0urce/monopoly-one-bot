@@ -71,7 +71,10 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     // check if banned
     const counterExists = !!(await page.$('.title-counter'));
     if (! counterExists) {
-        return 'BANNED';
+         const text1 = await (await page.$('.emptylistmessage')).evaluate((el) => { return el.innerText });
+         if (! text1.includes('инвентарь пуст')) {
+             return 'BANNED';
+         }
     }
     
 
