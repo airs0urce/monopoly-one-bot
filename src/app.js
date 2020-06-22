@@ -101,7 +101,8 @@ let browser;
 
     let startFromProfile = null;
     //let startFromProfile='https://monopoly-one.com/profile/522832'
-
+    let totalProfilesChecked = 0;
+    
     for (let game of games) {
         debug(`обработка игроков со стола ${game.title}. Время стола: ${game.timeString}`);
         
@@ -124,7 +125,9 @@ let browser;
             if (res.can) {
                 await suggestProfileExchange(page, player.profile_link);
                 await addProfileCheck(player.profile_link);
-                handledProfilesCount++ 
+                handledProfilesCount++ ;
+                totalProfilesChecked++;
+                debug(`Всего проверено игроков: ${totalProfilesChecked}`);
             } else {                
                 debug(`Не проверяем аккаунт ${player.profile_link}, т.к. с последней проверки прошло ${res.passed_hours} часов, а надо ${config.profile_checking_frequency_hours}`);
             }
