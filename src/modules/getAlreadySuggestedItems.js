@@ -81,7 +81,7 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
             return el.innerText;
         });
 
-        const itemsForSell = await page.$$('.trades-main-list-one-content .trades-main-list-one-content-one._lost .trades-main-list-one-content-one-list > div');
+        const itemsForSell = await item.$$('.trades-main-list-one-content-one._lost .trades-main-list-one-content-one-list > div');
         const itemsForSellList = [];
         for (let itemForSell of itemsForSell) {
             const name = await (await itemForSell.$('.thing-image')).evaluate(async (el) => {
