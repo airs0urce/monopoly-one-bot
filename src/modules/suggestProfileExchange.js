@@ -39,6 +39,17 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
 
 
     await helpers.waitSelectorDisappears(page, 'div.profile.processing');
+
+    const emptyListEl = await page.$('.emptylistmessage');
+    if (emptyListEl) {
+        const emptyListMsg = await emptyListEl.evaluate((el) => { return el.innerText; });
+        if (emptyListMsg.includes('Этот пользователь добавил вас в чёрный список')) {
+            debug(`${profileUrl}: Этот пользователь добавил вас в чёрный список`);
+            return;
+        }
+    }
+    
+
     // add profile to list of profiles where we already suggested exchange
     const profileName = await (await page.$('span._nick')).evaluate((el) => {
         return el.innerText;

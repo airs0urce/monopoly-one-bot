@@ -71,8 +71,7 @@ let browser;
     await loginMonopoly(page);
     await a.delay(1000);
 
-
-    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1732493');
+    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1839096');
     // await a.delay(1043434343);
 
     // await addOrRemoveFromMarket(null, browser);
@@ -97,10 +96,6 @@ let browser;
         });
     }
     await a.delay(1000);
-
-    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1732493');
-    // await a.delay(1043434343);
-
 
     const games = await getMatchingGamesList(page);
 
@@ -135,6 +130,9 @@ let browser;
     // await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/awesomo');
 
     debug('На этом наши полномочия все!');
+    await browser.close();
+    process.exit();
+
 })();
 
 
