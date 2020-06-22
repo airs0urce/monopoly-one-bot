@@ -77,8 +77,9 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
              if (! text1.includes('инвентарь пуст')) {
                  return 'BANNED';
              }
+         } else {
+             return 'BANNED';
          }
-         return 'BANNED';
     }
     
 
