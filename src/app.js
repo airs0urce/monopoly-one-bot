@@ -107,7 +107,7 @@ let browser;
         debug(`обработка игроков со стола ${game.title}. Время стола: ${game.timeString}`);
         
         for (let player of game.players) {
-            if (handledProfilesCount >= 20) {
+            if (handledProfilesCount >= 19) {
                 // add or remove item from market. Ban protection
                 debug(`${handledProfilesCount} профайлов обработано, удаляем\добавляем вещь на маркет, чтобы избежать банов...`);
                 await addOrRemoveFromMarket(page);
@@ -123,7 +123,21 @@ let browser;
 
             const res = await canCheckProfileAgain(player.profile_link);
             if (res.can) {
-                await suggestProfileExchange(page, player.profile_link);
+                let result = await suggestProfileExchange(page, player.profile_link);
+                let times = 3;
+                while (result === 'BANNED') {
+                    debug('На профайле нет счетчика вещей в инвентаре. У нас бан... Обрабатываем');
+                    if (times == 0) {
+                        debug('Пробовали победить бан несколько раз, но ничего не вышло. Завершаем программу');
+                        process.exit();
+                    }
+                    await addOrRemoveFromMarket(page);
+                    await addOrRemoveFromMarket(page);
+                    handledProfilesCount = 0;
+                    result = await suggestProfileExchange(page, player.profile_link);
+                    times--;
+                }
+
                 await addProfileCheck(player.profile_link);
                 handledProfilesCount++ ;
                 totalProfilesChecked++;

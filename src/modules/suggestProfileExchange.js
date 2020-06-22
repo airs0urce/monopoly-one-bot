@@ -68,6 +68,13 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         return;
     }
 
+    // check if banned
+    const counterExists = !!(await page.$('.title-counter'));
+    if (! counterExists) {
+        return 'BANNED';
+    }
+    
+
     //
     // check if "Все" buttom available and click
     //
