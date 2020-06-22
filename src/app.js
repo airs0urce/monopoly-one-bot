@@ -21,7 +21,7 @@ const debug = d(`mon:app`);
 const rimraf = require('rimraf');
 
 const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha-2');
-
+const aplayer = require('play-sound')(opts = {});
 
 let browser;
 
@@ -138,9 +138,16 @@ let browser;
     // await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/1798548'); // воробушек
     // await suggestProfileExchange(browser, 'https://monopoly-one.com/profile/awesomo');
 
+    if (config.play_sound_when_finished) {
+        aplayer.play(__dirname + '/finish.wav');
+    }
+    
     debug('На этом наши полномочия все!');
-    await browser.close();
-    process.exit();
+    setTimeout(async () => {
+        await browser.close();
+        process.exit();
+    }, 5000);
+    
 
 })();
 
