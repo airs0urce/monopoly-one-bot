@@ -1,6 +1,6 @@
 
 process.env.DEBUG = 'mon:*';
-const fs = require('fs');
+const fs = require('fs').promises;
 const config = require('./../config')
 const util = require('util');
 const helpers = require('./helpers');
@@ -120,9 +120,15 @@ let browser;
                 startFromProfile = null;
             }
 
-            await suggestProfileExchange(page, player.profile_link);
+            const res = await canCheckProfileAgain(player.profile_link);
+            if (res.can) {
+                await suggestProfileExchange(page, player.profile_link);
+                await addProfileCheck(player.profile_link);
+                handledProfilesCount++ 
+            } else {                
+                debug(`Не проверяем аккаунт ${player.profile_link}, т.к. с последней проверки прошло ${res.passed_hours} часов, а надо ${config.profile_checking_frequency_hours}`);
+            }
             
-            handledProfilesCount++ 
         }
     }
     
@@ -136,9 +142,59 @@ let browser;
 })();
 
 
+async function canCheckProfileAgain(profileUrl) {
+    const db = await readDB();
+    const nowTs = getTs();
+    const profileCheckFreqSec = config.profile_checking_frequency_hours * 60 * 60;
+
+    for (let record of db) {
+        const passedSec = nowTs - record.ts;
+        if (record.profileUrl == profileUrl && passedSec < profileCheckFreqSec) {
+            const passedHours = passedSec / 60 / 60;
+            return {can: false, passed_hours: passedHours};
+        }
+    }
+
+    return {can: true};
+}
+
+async function addProfileCheck(profileUrl) {
+    const profiles = await readDB();
+    const nowTs = getTs();
+
+    let set = false;
+    for (let i = 0; i < profiles.length; i++) {
+        if (profiles[i].profileUrl == profileUrl) {
+            profiles[i].ts = nowTs;
+            set = true;
+            break;
+        }
+    }
+    if (!set) {
+        profiles.push({
+            profileUrl: profileUrl,
+            ts: nowTs
+        });
+    }
+
+    await writeDB(profiles);
+}
+
+async function readDB() {
+    try {
+        const file = await fs.readFile(__dirname + '/checkedProfiles.json', {encoding: 'utf8'});
+        return JSON.parse(file);
+    } catch(e) {
+        await writeDB([]);
+        return [];
+    }
+}
+
+async function writeDB(contentArray) {
+    await fs.writeFile(__dirname + '/checkedProfiles.json', JSON.stringify(contentArray));
+}
 
 
-
-
-
-
+function getTs() {
+    return Math.round(new Date().getTime()/1000);
+}
