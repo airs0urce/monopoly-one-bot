@@ -90,10 +90,12 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     if (allBtnExists) {
         debug('Кнопка "Все" найдена, кликаем...')
         try {
-            await page._cursor.click('.title.title-3 a');
+            await page.click('.title.title-3 a');
         } catch(e) {
-            throw Error('ERROR CLICKING VSE BUTTON');
-            return await suggestProfileExchange(page, profileUrl, precheckCaptcha);
+            debug('ERROR CLICKING VSE BUTTON. Message:' + e.message);
+            
+            await page.goto(profileUrl + '/inventory');
+            await page.waitForSelector('.inventory-items .thing');
         }
     } else {
         debug(`${profileName}: Пропускаем профайл, т.к. инвентарь пустой`);
