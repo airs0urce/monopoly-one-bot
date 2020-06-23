@@ -89,10 +89,21 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
         }
         debug('debug a1');
         let loaded2 = false;
+        let timesDone = 0;
         while (!loaded2) {
             debug('debug a2');
             await a.delay(500);
             loaded2 = await page.$('.inventory-items') && !(await page.$('.inventory-items.processing'))
+            timesDone++;
+            if (timesDone > 6) {
+                let captchaResult2 = await helpers.waitForCaptcha(page);
+                if (captchaResult.found && ! captchaResult.solved) {
+                    debug("CAPTCHA FAILED 22 - RETRYING");
+                    const res = await addOrRemoveFromMarket(page, orBrowser, true);
+                    return res;
+                }
+            }
+            
         }
 
         debug('debug a3');
