@@ -71,7 +71,7 @@ let browser;
     await loginMonopoly(page);
     await a.delay(1000);
 
-    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1296667');
+    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1289631');
     // await a.delay(1043434343);
 
     // await addOrRemoveFromMarket(null, browser);
@@ -107,15 +107,15 @@ let browser;
         debug(`обработка игроков со стола ${game.title}. Время стола: ${game.timeString}`);
         
         for (let player of game.players) {
-            /*
-            if (handledProfilesCount >= 19) {
+            
+            if (handledProfilesCount >= 22) {
                 // add or remove item from market. Ban protection
                 debug(`${handledProfilesCount} профайлов обработано, удаляем\добавляем вещь на маркет, чтобы избежать банов...`);
                 await addOrRemoveFromMarket(page);
                 await addOrRemoveFromMarket(page);
                 handledProfilesCount = 0;
             }
-            */
+            
 
             if (startFromProfile && player.profile_link != startFromProfile) {
                 continue;

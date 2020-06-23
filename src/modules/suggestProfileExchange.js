@@ -275,7 +275,6 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     if (myItems.length == 0) {
         debug(`${profileName}: Завершаем обратобку, т.к. у нас не осталось больше карточек для предложений.`);        
         debug(`${profileName}: Завершаем скрипт, т.к. нет смысла продолжать смотреть профайлы, когда у нас нет карточек`);
-        await a.delay(1000 * 60 * 60);
         process.exit()
         return;               
     }
