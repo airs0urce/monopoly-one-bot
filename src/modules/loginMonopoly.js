@@ -21,6 +21,7 @@ module.exports = async function loginMonopoly(page, orBrowser) {
     await page.setViewport({ width: helpers.rand(1393, 1500), height: helpers.rand(600, 800) });
 
     // wait for page loaded in any state - logged in or logged out
+    await a.delay(1000);
     await a.single([
         a.result(page.waitForSelector('.header-auth')),
         a.result(page.waitForSelector('.HeaderUser-menu-one'))
