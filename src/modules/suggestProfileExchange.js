@@ -269,6 +269,11 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         return !item.alreadyUsed;
     });
 
+    if (config.consider_cards_from_sent_suggestions) {
+        debug(`${profileName}: количество доступных карточек у кроме уже использованных: ${myItems.length}`);
+    }
+    
+
     //
     // If we used all cards already - let's just finish script 
     //
