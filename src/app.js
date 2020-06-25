@@ -62,7 +62,6 @@ let browser;
         userDataDir: userDataFolder,
         args: chromeArgs
     });
-await a.delay(1000000);
 
     const page = await helpers.newPage(browser);    
 
