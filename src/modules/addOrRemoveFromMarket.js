@@ -91,7 +91,6 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
         let loaded2 = false;
         let timesDone = 0;
         while (!loaded2) {
-            debug('debug a2');
             await a.delay(500);
             loaded2 = await page.$('.inventory-items') && !(await page.$('.inventory-items.processing'))
             timesDone++;

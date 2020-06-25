@@ -25,8 +25,8 @@ exports.newPage = async function(browser) {
     const startPoint = { x: exports.rand(100, 700), y: exports.rand(100, 700)};
     page._cursor = createCursor(page, startPoint);
     await installMouseHelper(page);
-    page.setDefaultNavigationTimeout(120 * 1000 * 6);
-    page.setDefaultTimeout(120 * 1000 * 6);
+    page.setDefaultNavigationTimeout(6 * 1000 * 60);
+    page.setDefaultTimeout(6 * 1000 * 60);
     await page.on("dialog", async (dialog) => {
         await a.delay(1500);
         dialog.accept();

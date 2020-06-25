@@ -39,7 +39,7 @@ let browser;
     }
    
     // await require('./enable-puppeteer-background-only.js');
-    const chromeArgs = [];
+    const chromeArgs = ['--disable-gpu'];
     // if (config.auto_captcha_solver) {
     //     chromeArgs.push(`--disable-extensions-except=${__dirname}/../extension/`);
     //     chromeArgs.push(`--load-extension=${__dirname}/../extension/`);
@@ -62,7 +62,7 @@ let browser;
         userDataDir: userDataFolder,
         args: chromeArgs
     });
-
+await a.delay(1000000);
 
     const page = await helpers.newPage(browser);    
 

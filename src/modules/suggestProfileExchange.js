@@ -55,7 +55,6 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         return el.innerText;
     });
 
-
     //
     // check amount of matches
     //
