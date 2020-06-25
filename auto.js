@@ -47,7 +47,7 @@ function runChild() {
 (async function() {
     while (1) {
         console.log('=== STARTING CHILD ===');
-        a.delay(5000);
+        a.delay(10000);
         await runChild();
     }
 })();
