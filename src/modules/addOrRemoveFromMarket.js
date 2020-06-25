@@ -49,7 +49,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
             input.id = removeFromMarketButtonId;
         }, removeFromMarketButtonId);
         await a.delay(200);
-        await page._cursor.click('#' + removeFromMarketButtonId);
+        await page.click('#' + removeFromMarketButtonId);
         await a.delay(2000);
         const captchaResult = await helpers.waitForCaptcha(page);
 
