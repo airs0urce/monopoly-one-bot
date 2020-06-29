@@ -277,6 +277,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     // If we used all cards already - let's just finish script 
     //
     if (myItems.length == 0) {
+        debug('STOP_AUTOSTART');
         debug(`${profileName}: Завершаем обратобку, т.к. у нас не осталось больше карточек для предложений.`);        
         debug(`${profileName}: Завершаем скрипт, т.к. нет смысла продолжать смотреть профайлы, когда у нас нет карточек`);
         process.exit()

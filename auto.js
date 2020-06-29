@@ -17,9 +17,19 @@ function runChild() {
 
         bot.stdout.on('data', (data) => {
             lastOutputEvent = getTs();
+
+            if (data.includes('STOP_AUTOSTART')) {
+                console.log('автозапуск отключен. Причина: код STOP_AUTOSTART');
+                process.exit();
+            }
         });
         bot.stderr.on('data', (data) => {
             lastOutputEvent = getTs();
+
+            if (data.includes('STOP_AUTOSTART')) {
+                console.log('автозапуск отключен. Причина: код STOP_AUTOSTART');
+                process.exit();
+            }
         });
 
         const intervalId = setInterval(() => {
