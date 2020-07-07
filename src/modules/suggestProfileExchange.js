@@ -9,7 +9,7 @@ const addOrRemoveFromMarket = require('./addOrRemoveFromMarket');
 var player = require('play-sound')(opts = {});
 
 
-
+let triedAfterZero = 0;
 
 module.exports = async function suggestProfileExchange(page, profileUrl, precheckCaptcha = false) {
     const debug = d(`mon:suggestProfileExchange:${profileUrl}`);
@@ -233,7 +233,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     (await page.$('.trades-main-inventories-one:nth-child(1) ._filter [design-selecter-value="cards"]')).evaluate(async (el) => { 
         el.click();
     });
-    await a.delay(400);
+    await a.delay(500);
     let myItems = [];
     let myItemEls = await page.$$('.trades-main-inventories-one:nth-child(1) .trades-main-inventories-one-list div.tradesThing[mnpl-filter="1"]');
 
@@ -260,6 +260,12 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     }
 
     debug(`${profileName}: количество доступных карточек у нас: ${myItems.length}`);
+
+    if (myItems.length == 0 && triedAfterZero < 3) {
+        debug(`0 доступных карточек... Возможно это глюк, попробуем еще раз`);
+        triedAfterZero += 1;
+        return await suggestProfileExchange(page, profileUrl, precheckCaptcha);
+    }
 
     //
     // Remove already used cards
