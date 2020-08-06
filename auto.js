@@ -32,11 +32,20 @@ function runChild() {
             }
         });
 
+        const autoCloseAfter4h = setTimeout(() => {
+            // we will auto-close bot after 4 hours, because if it's running so long it means something broken
+            bot.kill();
+            resolve();
+            clearInterval(intervalId);
+        }, 1000 * 60 * 60 * 4);
+        
+
         const intervalId = setInterval(() => {
             const fourMinInSec = 60 * 4;
 
             if (getTs() - lastOutputEvent > fourMinInSec) {
                 clearInterval(intervalId);
+                clearTimeout(autoCloseAfter5h);
                 lastOutputEvent = 0;
                 bot.kill();
                 resolve();
@@ -47,6 +56,7 @@ function runChild() {
             console.log(`child process close all stdio with code ${code}`);
             lastOutputEvent = 0;
             clearInterval(intervalId);
+            clearTimeout(autoCloseAfter5h);
             resolve();
         });
     });
