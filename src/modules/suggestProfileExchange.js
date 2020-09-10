@@ -441,6 +441,18 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         exchangeAmountHim = hisItems.length;
     }
 
+
+    const maxExchange = 10;
+    if (exchangeAmountMe > maxExchange) {
+        exchangeAmountMe = maxExchange;
+        debug(`exchangeAmountMe set to ${maxExchange}`)
+    }
+    if (exchangeAmountHim > maxExchange) {
+        exchangeAmountHim = maxExchange;
+        debug(`exchangeAmountHim set to ${maxExchange}`)
+    }
+    
+
     //
     // Выбираем кейсы для обмена и отправляем предложение
     //
