@@ -38,7 +38,7 @@ let browser;
         rimraf.sync(userDataFolder);
     }
    
-    // await require('./enable-puppeteer-background-only.js');
+    await require('./enable-puppeteer-background-only.js');
     const chromeArgs = ['--disable-gpu'];
     // if (config.auto_captcha_solver) {
     //     chromeArgs.push(`--disable-extensions-except=${__dirname}/../extension/`);

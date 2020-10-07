@@ -144,12 +144,16 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     //
     let neededCaseExists = false;
     for (let neededCase of config.needed_cases) {        
-        neededCaseExists = !!(await page.$(`.inventory-items div[style*="${neededCase.image}"]`));
+        for (let imageUrl of neededCase.images) {
+            neededCaseExists = !!(await page.$(`.inventory-items div[style*="${imageUrl}"]`));
+            if (neededCaseExists) {
+                debug(`${profileName}: Нашли нужные нам кейсы`);
+                break;
+            }
+        }
         if (neededCaseExists) {
-            debug(`${profileName}: Нашли нужные нам кейсы`);
             break;
         }
-        
     }
 
     if (! neededCaseExists) {
@@ -348,7 +352,10 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
             return backgroundImage;
         });
 
-        const neededImages = config.needed_cases.map(el => el.image);
+        let neededImages = [];
+        for (let needed_case of config.needed_cases) {
+            neededImages = neededImages.concat(needed_case.images);
+        }
 
         if (! neededImages.includes(backgroundImage)) {
             ignoredCases.push(name);
