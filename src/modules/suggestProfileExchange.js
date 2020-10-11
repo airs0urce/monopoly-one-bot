@@ -190,11 +190,14 @@ console.log('resp.result:', resp.result);
             itemsList.me.push(item);
         }
         
-        for (i = 0; i < resp.result.items[1].list.length; i++) {
-            const item = resp.result.items[1].list[i];
-            itemsList.them.push(item);   
+        if (resp.result.items[1]) {
+            for (i = 0; i < resp.result.items[1].list.length; i++) {
+                const item = resp.result.items[1].list[i];
+                itemsList.them.push(item);   
+            }
+        } else {
+            console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!! NO ITEMS FOR PROFILE', );
         }
-
 
         console.log('me items: ', itemsList.me.length);
         console.log('them item', itemsList.them.length)
