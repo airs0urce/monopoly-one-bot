@@ -80,7 +80,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
         // Add to market
         //
         await page.goto('https://monopoly-one.com/inventory');
-        await page.waitForSelector('.inventory-items.processing');
+        await page.waitForSelector('.processing');
         let captchaResult = await helpers.waitForCaptcha(page);
         if (captchaResult.found && ! captchaResult.solved) {
             debug("CAPTCHA FAILED 2 - RETRYING");

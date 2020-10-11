@@ -94,14 +94,16 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
             debug('ERROR CLICKING VSE BUTTON. Message:' + e.message);
             
             await page.goto(profileUrl + '/inventory');
-            await page.waitForSelector('.inventory-items .thing');
+            await page.waitForSelector('.inventory-items .Item');
         }
     } else {
         debug(`${profileName}: Пропускаем профайл, т.к. инвентарь пустой`);
         return;
     }
 
+    debug('debug -1');
     setTimeout(async () => {
+        debug('debug 0');
         // sometimes button doesn't get pressed, here is durty fix
         try {
             const allBtn = await page.$('.title.title-3 a');
@@ -116,7 +118,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     //
     debug('debug 1');
     const results = await Promise.all([
-        page.waitForSelector('.inventory-items .inventory-items-one').then(() => {
+        page.waitForSelector('.inventory-items .Item').then(() => {
             debug('debug 3');
         }),
         helpers.waitForCaptcha(page).then((res1) => {
@@ -134,8 +136,8 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     }
 
     debug('debug 7');
-    
-    await helpers.waitSelectorDisappears(page, '.inventory-items.processing');
+
+    await helpers.waitSelectorDisappears(page, '.inventory-items .processing.processing-default');
     await a.delay(500);
     debug('debug 8');
 
@@ -145,7 +147,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     let neededCaseExists = false;
     for (let neededCase of config.needed_cases) {        
         for (let imageUrl of neededCase.images) {
-            neededCaseExists = !!(await page.$(`.inventory-items div[style*="${imageUrl}"]`));
+            neededCaseExists = !!(await page.$(`.Item div._img[style*="${imageUrl}"]`));
             if (neededCaseExists) {
                 debug(`${profileName}: Нашли нужные нам кейсы`);
                 break;
@@ -161,12 +163,52 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         return;
     }
 
+    const itemsList = {
+        RES: null,
+        me: [],
+        them: []
+    };
+    async function responsesHandler(response) {
+        if (response.request().resourceType() !== 'fetch') {
+            return;
+        }
+        if (response.url() != 'https://monopoly-one.com/api/execute.prepareTrade') {
+            return;
+        }
+        const resp = await response.json();
+
+        if (resp.result == 0) {
+            console.log('Возможно: Произошла неизвестная ошибка. Код EXECUTE-PREPARETRADE-0');
+            itemsList.RES = 'RETRY';
+            return;
+        }
+
+        let i;
+console.log('resp.result:', resp.result);        
+        for (i = 0; i < resp.result.items[0].list.length; i++) {
+            const item = resp.result.items[0].list[i];
+            itemsList.me.push(item);
+        }
+        
+        for (i = 0; i < resp.result.items[1].list.length; i++) {
+            const item = resp.result.items[1].list[i];
+            itemsList.them.push(item);   
+        }
+
+
+        console.log('me items: ', itemsList.me.length);
+        console.log('them item', itemsList.them.length)
+
+    }
+
+    page.on('response', responsesHandler);
+
     //
     // Go to "Предложить обмен"
     //
     await a.delay(400);
     debug(`${profileName}: Жмем "Предложить обмен"`);
-    await page._cursor.click('[href*="/trades/new"]');
+    await page.click('[href*="/trades/new"]');
     setTimeout(async () => {
         try {
             const stillOnOldPage = !!(await page.$('[href*="/trades/new"]'))
@@ -179,52 +221,71 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
 
     debug(`${profileName}: Ждем загрузки страницы`);
 
+    
+
     await page.waitForSelector('div.trades');
     const captchaResult0 = await helpers.waitForCaptcha(page);
     debug('debug 1');
+    
+    page.off('response', responsesHandler);
+
+
     if (captchaResult0.found && ! captchaResult0.solved) {
         debug("CAPTCHA FAILED 2 - RETRYING");
         const res = await suggestProfileExchange(page, profileUrl, true)
         return res;
     }
 
+    if (itemsList.RES == 'RETRY') {
+        debug(`Пробуем еще раз тк itemsList.RES == 'RETRY'`);
+        triedAfterZero += 1;
+        return await suggestProfileExchange(page, profileUrl, precheckCaptcha);
+    }
+
     
     debug('debug 2');
+
     await page.waitForSelector('div.trades');
+    debug('debug 3');
 
     await a.single([
         helpers.waitSelectorDisappears(page, 'div.trades.processing'),
         page.$('.vueDesignDialog-title')
     ]);
     
-    await a.delay(400);
+    await a.delay(200);
     debug('debug 2.5');
     
     const dialog = await page.$('.vueDesignDialog-title');
     if (dialog) {
+        debug('debug 2.6');
         const restricted = (dialog).evaluate((el) => { return el.innerText.includes('Вы не можете предложить обмен этому игроку') });
         if (restricted) {
+            debug('debug 2.8');
             debug(`${profileName}: Вы не можете предложить обмен этому игроку. Он ограничивает круг игроков, которые могут присылать ему обмены.`);
             return;
         }
     }
-    await a.delay(2000);
-    
-    const notAvailableEl = await page.$('.trades-main-inventories-persons-one:nth-child(2) .trades-main-inventories-persons-one-info-count em');
+    await a.delay(1000);
+
+    debug('debug 2.8');
+    const notAvailableEl = await page.$('.trades-main-inventories-one .emptylistmessage');
     if (notAvailableEl) {
         const notAvailableForExchange = await notAvailableEl.evaluate((el) => {
-            return el.innerText == 'недоступен';
+            return (
+                el.innerText.includes('не можете')
+                || el.innerText.includes('недоступен')
+            );
         });
         if (notAvailableForExchange) {
             const errorMessage = await (await page.$('.emptylistmessage')).evaluate((el) => {
                 return el.innerText;
             });
-            
             debug(`${profileName}: Обмен невозможен. ${errorMessage}`);
             return;
         }
     }
-    
+    debug('debug 2.9');
 
     //
     // get all my cards
@@ -233,25 +294,49 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     // filter only cards
     await helpers.waitForCaptcha(page);
 
+    debug('debug new 1');
     await a.delay(400);
-    (await page.$('.trades-main-inventories-one:nth-child(1) ._filter [design-selecter-value="cards"]')).evaluate(async (el) => { 
+    (await page.$('.trades-main-inventories-one:nth-child(2) ._filter [design-selecter-value="cards"]')).evaluate(async (el) => { 
         el.click();
     });
-    await a.delay(500);
+    debug('debug new 2');
+    await a.delay(300);
+
+    await showAllItems(page, debug);
+
+    let i = 0;
+    
+    let itemEl;
+
+    // thing_type: 0 - card, 1: (?), 2 - case, ...
+    const cardsItemsList = itemsList.me.filter((item) => { return item.thing_type == 0 })
+    for (i = 0; i < cardsItemsList.length; i++) {
+        page.evaluate(async (i, thing) => {
+            const itemEl = $('.trades-main-inventories-one-list:eq(0) .Item:eq(' + i + ')');
+            itemEl.attr('id', thing.thing_id);
+            itemEl.attr('title', thing.title);
+            itemEl.attr('index', i);
+        }, i, cardsItemsList[i]);
+    }
+    // for (i = 0; i < itemsList.them.length; i++) {
+    //     (await lists[1].$('.Item:nth-child(' + i + ')')).id = itemsList.me[i].thing_id;
+    // }
+
+
     let myItems = [];
-    let myItemEls = await page.$$('.trades-main-inventories-one:nth-child(1) .trades-main-inventories-one-list div.tradesThing[mnpl-filter="1"]');
+    let myItemEls = await page.$$('.trades-main-inventories-one:nth-child(2) .trades-main-inventories-one-list div.Item');
 
     for (let myItemEl of myItemEls) {        
-        const name = await (await myItemEl.$('.thing-image')).evaluate(async (el) => {
+        const name = await (await myItemEl.$('.Item-image')).evaluate(async (el) => {
             return el.getAttribute('kd-tooltip');
         });
-        const backgroundImage = await (await myItemEl.$('.thing-image div')).evaluate(async (el) => {
+        const backgroundImage = await (await myItemEl.$('.Item-image div')).evaluate(async (el) => {
             let backgroundImage = el.style.backgroundImage;
             backgroundImage = backgroundImage.replace('url("', '').replace('")', '');
             return backgroundImage;
         });
         const id = await myItemEl.evaluate(async (el) => {
-            return el.id;
+            return parseInt(el.id, 10);
         });
 
         myItems.push({
@@ -271,15 +356,14 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         return await suggestProfileExchange(page, profileUrl, precheckCaptcha);
     }
 
-    //
-    // Remove already used cards
-    //
-    myItems = myItems.filter((item) => {
-        return !item.alreadyUsed;
-    });
-
     if (config.consider_cards_from_sent_suggestions) {
-        debug(`${profileName}: количество доступных карточек у кроме уже использованных: ${myItems.length}`);
+        //
+        // Remove already used cards
+        //
+        myItems = myItems.filter((item) => {
+            return !item.alreadyUsed;
+        });
+        debug(`${profileName}: количество доступных карточек кроме уже использованных: ${myItems.length}`);
     }
     
 
@@ -298,17 +382,23 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     //
     // Remove cards that user already have
     // 
-    await page._cursor.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(2)');
-    await a.delay(400);
+    await page.click('.tabs-one:nth-child(2)');
+    await a.delay(100);
+
+    await showAllItems(page, debug);
 
     // get another user all items
     let hisItemsAll = [];
-    let hisItemAllEls = await page.$$('.trades-main-inventories-one:nth-child(2) .trades-main-inventories-one-list div.tradesThing');
+
+
+
+
+    let hisItemAllEls = await page.$$('.trades-main-inventories-one:nth-child(3) .Item');
     for (let hisItemEl of hisItemAllEls) {        
-        const name = await (await hisItemEl.$('.thing-image')).evaluate(async (el) => {
+        const name = await (await hisItemEl.$('.Item-image')).evaluate(async (el) => {
             return el.getAttribute('kd-tooltip');
         });
-        const backgroundImage = await (await hisItemEl.$('.thing-image div')).evaluate(async (el) => {
+        const backgroundImage = await (await hisItemEl.$('.Item-image ._img')).evaluate(async (el) => {
             let backgroundImage = el.style.backgroundImage;
             backgroundImage = backgroundImage.replace('url("', '').replace('")', '');
             return backgroundImage;
@@ -324,29 +414,31 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     debug(`${profileName}: у него всего ${hisItemsAll.length} предметов`);
 
     // Filter by "Cases and Sets"
-    await (await page.$('.trades-main-inventories-one:nth-child(2) ._filter [design-selecter-value="containers"]')).evaluate((el) => { el.click() })
+    await (await page.$('.trades-main-inventories-one:nth-child(3) ._filter [design-selecter-value="containers"]')).evaluate((el) => { el.click() })
     await a.delay(250);
 
     // get only cases and sets of another user
     let hisItems = [];
-    let hisItemEls = await page.$$('.trades-main-inventories-one:nth-child(2) .trades-main-inventories-one-list div.tradesThing[mnpl-filter="1"]');
+    let hisItemEls = await page.$$('.trades-main-inventories-one:nth-child(3) .Item');
 
     // IMPORTANT: HIDE ALL .selecter-options as they make a problem whne we move cursor
     // elements can appear and user wil click them instead of cases
     await page.evaluate(() => {
-        const selectors = document.querySelectorAll('.block .trades-main-inventories-one:nth-child(2) .selecter-options')
-        selectors[0].style.display = 'none';
-        selectors[1].style.display = 'none';
+        const selectors = document.querySelectorAll('.block .trades-main-inventories-one .selecter-options');
+        if (selectors[0]) selectors[0].style.display = 'none';
+        if (selectors[1]) selectors[1].style.display = 'none';
+        if (selectors[2]) selectors[2].style.display = 'none';
+        if (selectors[3]) selectors[3].style.display = 'none';
     });
-    await a.delay(250);
+    await a.delay(100);
     
 
     const ignoredCases = [];
     for (let hisItemEl of hisItemEls) {     
-        const name = await (await hisItemEl.$('.thing-image')).evaluate(async (el) => {
+        const name = await (await hisItemEl.$('.Item-image')).evaluate(async (el) => {
             return el.getAttribute('kd-tooltip');
         });
-        const backgroundImage = await (await hisItemEl.$('.thing-image div')).evaluate(async (el) => {
+        const backgroundImage = await (await hisItemEl.$('.Item-image div')).evaluate(async (el) => {
             let backgroundImage = el.style.backgroundImage;
             backgroundImage = backgroundImage.replace('url("', '').replace('")', '');
             return backgroundImage;
@@ -449,7 +541,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     }
 
 
-    const maxExchange = 10;
+    const maxExchange = 7;
     if (exchangeAmountMe > maxExchange) {
         exchangeAmountMe = maxExchange;
         debug(`exchangeAmountMe set to ${maxExchange}`)
@@ -465,18 +557,10 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     //
 
     // open my items tab
-    await page.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(1)');
-    await a.delay(200);
-    
-
-    // IMPORTANT: HIDE ALL .selecter-options as they make a problem whne we move cursor
-    // elements can appear and user wil click them instead of cases
-    await page.evaluate(() => {
-        const selectors = document.querySelectorAll('.block .trades-main-inventories-one:nth-child(1) .selecter-options')
-        if (selectors[0]) selectors[0].style.display = 'none';
-        if (selectors[1]) selectors[1].style.display = 'none';
-    });
-    await a.delay(250);
+    await page.click('.tabs-one:nth-child(1)');
+    await a.delay(100);
+    await showAllItems(page, debug);
+ 
 
     let clicked = 0;
     const mySuggestedCards = [];
@@ -523,15 +607,19 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
 
     // open his items tab
     debug(`${profileName}: открываем его таб`);
-    await page.click('.trades-main-inventories-persons .trades-main-inventories-persons-one:nth-child(2)');
-    await a.delay(400);
+    await page.click('.tabs-one:nth-child(2)');
+    await a.delay(100);
+    await showAllItems(page, debug);
 
     clicked = 0;
     for (let hisItem of hisItems) {    
-
         debug(`${profileName}: кликаем его кейс ${hisItem.name}`);
-        await page.click(`.block .trades-main-inventories-one:nth-child(2) div.tradesThing:not(._selected) .thing-image > div[style*="${hisItem.imageUrl}"] `);
-        await a.delay(300);
+        //await page.click(`.trades-main-inventories-one:nth-child(3) div[style*="${hisItem.imageUrl}"] `);
+        await page.evaluate((imageUrl) => {
+            $(`.trades-main-inventories-one:nth-child(3) div[style*="${imageUrl}"]`).first().click();
+        }, hisItem.imageUrl);
+
+        await a.delay(200);
 
         hisCases.push(hisItem.name);
 
@@ -557,7 +645,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     });
 
 
-    if (dialogTitle.includes('отправлено')) {
+    if (dialogTitle.includes('отправлен')) {
         if (config.play_sound_when_exchange_suggested) {
             player.play(__dirname + '/../suggested.wav');
         }
@@ -588,11 +676,20 @@ function getSuggestedProfileByUrl(profileUrl) {
 
 
 async function clickMyCard(myItemSuggest, page) {
-    await page.click(`.block .trades-main-inventories-one:nth-child(1) div.tradesThing[id="${myItemSuggest.id}"]:not(._selected)`);
+    await page.click(`.Item[id="${myItemSuggest.id}"]`);
     await a.delay(300);
 }
 
-
+async function showAllItems(page, debug) {
+    debug('Жмем "показать еще" чтобы появились все наши вещи');
+    while (!!(await page.$('.VueLoadBlock-block'))) {
+        await page.click('.VueLoadBlock-block');
+        await a.delay(10)
+        await helpers.scrollPageToBottom(page);
+        await a.delay(1)
+    }
+    debug('Закончили, все наши вещи показаны');
+}
 
 
 

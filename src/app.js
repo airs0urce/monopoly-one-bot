@@ -70,14 +70,16 @@ let browser;
     await loginMonopoly(page);
     await a.delay(1000);
 
-    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1289631');
-    // await a.delay(1043434343);
-
     // await addOrRemoveFromMarket(null, browser);
     // await addOrRemoveFromMarket(null, browser);
     // await addOrRemoveFromMarket(null, browser);
     // await addOrRemoveFromMarket(null, browser);
     // await a.delay(2000000);    
+
+    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/2069820');
+    // await a.delay(1043434343);
+
+
     const alreadySuggestedItems = await getAlreadySuggestedItems(page);
    
     // add items to globals
@@ -95,6 +97,7 @@ let browser;
         });
     }
     await a.delay(1000);
+
 
     const games = await getMatchingGamesList(page);
 
