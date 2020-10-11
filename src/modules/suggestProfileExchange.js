@@ -184,23 +184,22 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         }
 
         let i;
-console.log('resp.result:', resp.result);        
-        for (i = 0; i < resp.result.items[0].list.length; i++) {
-            const item = resp.result.items[0].list[i];
-            itemsList.me.push(item);
-        }
         
-        if (resp.result.items[1]) {
-            for (i = 0; i < resp.result.items[1].list.length; i++) {
-                const item = resp.result.items[1].list[i];
-                itemsList.them.push(item);   
-            }
+        if (resp.result.error) {
+            console.log('resp.result.error:', resp.result);
         } else {
-            console.log('!!!!!!!!!!!!!!!!!!!!!!!!!!!! NO ITEMS FOR PROFILE', );
+            for (i = 0; i < resp.result.items[0].list.length; i++) {
+                const item = resp.result.items[0].list[i];
+                itemsList.me.push(item);
+            }
+            
+            if (resp.result.items[1]) {
+                for (i = 0; i < resp.result.items[1].list.length; i++) {
+                    const item = resp.result.items[1].list[i];
+                    itemsList.them.push(item);   
+                }
+            }
         }
-
-        console.log('me items: ', itemsList.me.length);
-        console.log('them item', itemsList.them.length)
 
     }
 
@@ -225,8 +224,26 @@ console.log('resp.result:', resp.result);
     debug(`${profileName}: Ждем загрузки страницы`);
 
     
-
-    await page.waitForSelector('div.trades');
+    
+    await a.single([
+        page.waitForSelector('div.trades').then(() => {
+            return helpers.waitSelectorDisappears(page, 'div.trades.processing');
+        }),
+        page.waitForSelector('.vueDesignDialog-title')
+    ]);
+    
+    debug('dialog debug 1');
+    const dialog = await page.$('.vueDesignDialog-title');
+    if (dialog) {
+        debug('dialog debug 2');
+        const restricted = (dialog).evaluate((el) => { return el.innerText.includes('Вы не можете предложить обмен этому игроку') });
+        if (restricted) {
+            debug('dialog debug 3');
+            debug(`${profileName}: Вы не можете предложить обмен этому игроку. Он ограничивает круг игроков, которые могут присылать ему обмены.`);
+            return;
+        }
+    }
+    
     const captchaResult0 = await helpers.waitForCaptcha(page);
     debug('debug 1');
     
@@ -239,7 +256,7 @@ console.log('resp.result:', resp.result);
         return res;
     }
 
-    if (itemsList.RES == 'RETRY') {
+    if (itemsList.RES == 'RETRY' && triedAfterZero < 2) {
         debug(`Пробуем еще раз тк itemsList.RES == 'RETRY'`);
         triedAfterZero += 1;
         return await suggestProfileExchange(page, profileUrl, precheckCaptcha);
@@ -247,31 +264,17 @@ console.log('resp.result:', resp.result);
 
     
     debug('debug 2');
-
-    await page.waitForSelector('div.trades');
     debug('debug 3');
 
-    await a.single([
-        helpers.waitSelectorDisappears(page, 'div.trades.processing'),
-        page.$('.vueDesignDialog-title')
-    ]);
+
+    await helpers.waitSelectorDisappears(page, 'div.trades.processing'),
     
     await a.delay(200);
-    debug('debug 2.5');
-    
-    const dialog = await page.$('.vueDesignDialog-title');
-    if (dialog) {
-        debug('debug 2.6');
-        const restricted = (dialog).evaluate((el) => { return el.innerText.includes('Вы не можете предложить обмен этому игроку') });
-        if (restricted) {
-            debug('debug 2.8');
-            debug(`${profileName}: Вы не можете предложить обмен этому игроку. Он ограничивает круг игроков, которые могут присылать ему обмены.`);
-            return;
-        }
-    }
+    debug('debug 2.5+');
+
     await a.delay(1000);
 
-    debug('debug 2.8');
+    debug('debug 2.8+');
     const notAvailableEl = await page.$('.trades-main-inventories-one .emptylistmessage');
     if (notAvailableEl) {
         const notAvailableForExchange = await notAvailableEl.evaluate((el) => {
