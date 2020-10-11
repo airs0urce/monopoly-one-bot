@@ -36,7 +36,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
 
     
 
-    const korobochka5El = await page.$(`[style*="dices-5.png"]`);
+    const korobochka5El = await page.$(`[style*="dices-5"]`);
     let result = '';
     if (korobochka5El) {
         debug('"Коробочка с кубиками #5" на маркете, удаляем ее...')
@@ -106,9 +106,9 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
         }
 
         debug('debug a3');
-        await page.waitForSelector('[style*="dices-5.png"]');
+        await page.waitForSelector('[style*="dices-5"]');
         debug('debug a4');
-        await page._cursor.click('[style*="dices-5.png"]');
+        await page._cursor.click('[style*="dices-5"]');
         debug('debug a5');
         await page.waitForSelector('.InventoryHelper-body-buttons div:nth-child(2)');
         debug('debug a6');
