@@ -57,8 +57,15 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
 
         const resp = await response.json();
 
-
-        const profileId = resp.data.trades[0].user_id_to;
+        let profileId;
+        try {
+            profileId = resp.data.trades[0].user_id_to;
+        } catch (e) {
+            console.log('PROBLEM WITH response from trades.getOutbound');
+            console.log('Error:', e.message);
+            console.log(resp);
+            return;
+        }
         const profileUrl = 'https://monopoly-one.com/profile/' + resp.data.trades[0].user_id_to;
         const profileName = getUserDataById(resp, profileId).nick;
 
@@ -79,9 +86,8 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
             items: itemsForSellList,
         });
     }
+
     page.on('response', getOutboundHandler);
-
-
 
     await page.goto('https://monopoly-one.com/trades/outgoing', {referer: 'https://monopoly-one.com/m1tv'});
 
