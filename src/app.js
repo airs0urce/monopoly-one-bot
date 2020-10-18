@@ -76,7 +76,7 @@ let browser;
     // await addOrRemoveFromMarket(null, browser);
     // await a.delay(2000000);    
 
-    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/amuzeev');
+    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1877426');
     // await a.delay(1043434343);
 
 

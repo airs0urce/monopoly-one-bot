@@ -179,7 +179,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
 
         if (resp.result == 0) {
             console.log('Возможно: Произошла неизвестная ошибка. Код EXECUTE-PREPARETRADE-0');
-            itemsList.RES = 'RETRY';
+            itemsList.RES = 'SOLVE_CAPTCHA_AND_RETRY';
             return;
         }
 
@@ -239,7 +239,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         const restricted = (dialog).evaluate((el) => { return el.innerText.includes('Вы не можете предложить обмен этому игроку') });
         if (restricted) {
             debug('dialog debug 3');
-            debug(`${profileName}: Вы не можете предложить обмен этому игроку. Он ограничивает круг игроков, которые могут присылать ему обмены.`);
+            debug(`${profileName}: Вы не можете предложить обмен этому игроку. Он ограничивает круг игроков, которые могут присылать ему обмены.`);          
             return;
         }
     }
@@ -256,9 +256,17 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         return res;
     }
 
-    if (itemsList.RES == 'RETRY' && triedAfterZero < 2) {
-        debug(`Пробуем еще раз тк itemsList.RES == 'RETRY'`);
-        triedAfterZero += 1;
+    if (itemsList.RES == 'SOLVE_CAPTCHA_AND_RETRY') {
+        debug(`Идем решить капчу и пробуем еще раз тк itemsList.RES == 'SOLVE_CAPTCHA_AND_RETRY'`);
+
+        // solve captcha
+        console.log('Открываем https://monopoly-one.com/inventory и решаем капчу');
+        const page2 = await helpers.newPage(page.browser());        
+        await page2.goto('https://monopoly-one.com/inventory', {waitUntil: 'domcontentloaded'});
+        await helpers.waitForCaptcha(page2);
+        await page2.close();
+
+        console.log('Теперь пробуем предложить обмен еще раз');
         return await suggestProfileExchange(page, profileUrl, precheckCaptcha);
     }
 
@@ -356,11 +364,10 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
 
     debug(`${profileName}: количество доступных карточек у нас: ${myItems.length}`);
 
-    if (myItems.length == 0 && triedAfterZero < 3) {
-        debug(`0 доступных карточек... Возможно это глюк, попробуем еще раз`);
-        triedAfterZero += 1;
-        return await suggestProfileExchange(page, profileUrl, precheckCaptcha);
-    }
+    // if (myItems.length == 0 && triedAfterZero < 3) {
+    //     debug(`0 доступных карточек... Возможно это глюк, попробуем еще раз`);
+    //     return await suggestProfileExchange(page, profileUrl, precheckCaptcha);
+    // }
 
     if (config.consider_cards_from_sent_suggestions) {
         //
@@ -388,7 +395,19 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     //
     // Remove cards that user already have
     // 
-    await page.click('.tabs-one:nth-child(2)');
+    try {
+        await page.click('.tabs-one:nth-child(2)');
+    } catch (e) {
+        await a.delay(1000);
+        await page.evaluate(() => {
+            const element = document.querySelector('.tabs-one:nth-child(2)')
+            if (element) {
+                element.click();
+            } else {
+                console.log('Ничего не найдено по querySelector:', '.tabs-one:nth-child(2)');
+            }
+        });
+    }
     await a.delay(100);
 
     await showAllItems(page, debug);
@@ -690,14 +709,14 @@ async function clickMyCard(myItemSuggest, page) {
 }
 
 async function showAllItems(page, debug) {
-    debug('Жмем "показать еще" чтобы появились все наши вещи');
+    debug('Жмем "показать еще" чтобы появились все вещи на странице');
     while (!!(await page.$('.VueLoadBlock-block'))) {
         await page.click('.VueLoadBlock-block');
         await a.delay(10)
         await helpers.scrollPageToBottom(page);
         await a.delay(1)
     }
-    debug('Закончили, все наши вещи показаны');
+    debug('Закончили, все вещи показаны');
 }
 
 
