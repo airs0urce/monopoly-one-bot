@@ -447,6 +447,9 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         const backgroundImage = await (await hisItemEl.$('.Item-image div')).evaluate(async (el) => {
             let backgroundImage = el.style.backgroundImage;
             backgroundImage = backgroundImage.replace('url("', '').replace('")', '');
+            if (backgroundImage.includes('?')) {
+                backgroundImage = backgroundImage.split('?')[0];
+            }
             return backgroundImage;
         });
 
