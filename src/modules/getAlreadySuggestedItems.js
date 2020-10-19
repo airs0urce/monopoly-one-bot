@@ -70,13 +70,16 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
         const profileName = getUserDataById(resp, profileId).nick;
 
         const itemsForSellList = [];  
-        for (let thingFrom of resp.data.trades[0].things_from) {
-            itemsUsed[thingFrom.thing_id] = true;
-            itemsForSellList.push({
-                id: thingFrom.thing_id,
-                name: thingFrom.title,
-                imageUrl: thingFrom.image,
-            });
+        
+        for (let trade of resp.data.trades) {
+            for (let thingFrom of trade.things_from) {
+                itemsUsed[thingFrom.thing_id] = true;
+                itemsForSellList.push({
+                    id: thingFrom.thing_id,
+                    name: thingFrom.title,
+                    imageUrl: thingFrom.image,
+                });
+            }
         }
 
         results.push({
