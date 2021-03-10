@@ -1,5 +1,8 @@
 
 process.env.DEBUG = 'mon:*';
+
+const {checkProfileIgnored} = require('./ignoreProfiles');
+
 const fs = require('fs').promises;
 const config = require('./../config')
 const util = require('util');
@@ -126,7 +129,9 @@ let browser;
             }
 
             const res = await canCheckProfileAgain(player.profile_link);
-            if (res.can) {
+            const profileIgnored = await checkProfileIgnored(player.profile_link);        
+
+            if (res.can && !profileIgnored) {
                 let result = await suggestProfileExchange(page, player.profile_link);
                 let times = 3;
                 while (result === 'BANNED') {
@@ -147,7 +152,12 @@ let browser;
                 totalProfilesChecked++;
                 debug(`Всего проверено игроков: ${totalProfilesChecked}`);
             } else {                
-                debug(`Не проверяем аккаунт ${player.profile_link}, т.к. с последней проверки прошло ${res.passed_hours} часов, а надо ${config.profile_checking_frequency_hours}`);
+
+                if (profileIgnored) {
+                    debug(`Не проверяем аккаунт ${player.profile_link}, т.к. он добавлен в список исключений`);
+                } else {
+                    debug(`Не проверяем аккаунт ${player.profile_link}, т.к. с последней проверки прошло ${res.passed_hours} часов, а надо ${config.profile_checking_frequency_hours}`);
+                }
             }
             
         }
