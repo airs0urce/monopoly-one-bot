@@ -24,7 +24,8 @@ module.exports = async function loginMonopoly(page, orBrowser) {
     await a.delay(1000);
     await a.single([
         a.result(page.waitForSelector('.header-auth')),
-        a.result(page.waitForSelector('.HeaderUser-menu-one'))
+        a.result(page.waitForSelector('.HeaderUser-menu-one')),
+        a.result(page.waitForSelector('.auth-side'))
     ], 1)
     
 
