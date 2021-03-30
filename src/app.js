@@ -35,10 +35,32 @@ let browser;
     const sessionFolder  = config.monopoly_auth.username.replace('@', '').replace(/\./g, '');
     const userDataFolder = __dirname + '/browserUserData/' + sessionFolder;
 
+    const twoHoursWithoutRelogin = await (async () => {
+        let folderStat;
+        try {
+            folderStat = await fs.stat(userDataFolder);
+        } catch (e) {
+            return false;
+        }
+        const creationUnixTs = Math.round(folderStat.birthtimeMs / 1000);
+        const sec4hours = 60 * 60 * 2;
+
+        const nowTs = Math.round(Date.now() / 1000);
+
+        if (nowTs - creationUnixTs >= sec4hours) {
+            return true;
+        }
+        return false;
+    })();
+
     const args = process.argv.slice(2);
     if (args.includes('--clear')) {
         debug('запуск с параметром --clear, чистим сессионные данные браузера')
         rimraf.sync(userDataFolder);
+    }
+    if (twoHoursWithoutRelogin) {
+        debug('2 часа без релогина, удаляем сессию и релогинимся')
+        rimraf.sync(userDataFolder);   
     }
    
     // await require('./enable-puppeteer-background-only.js');
@@ -72,6 +94,7 @@ let browser;
 
     await loginMonopoly(page);
     await a.delay(1000);
+
 
     // await addOrRemoveFromMarket(null, browser);
     // await addOrRemoveFromMarket(null, browser);
@@ -236,3 +259,5 @@ async function writeDB(contentArray) {
 function getTs() {
     return Math.round(new Date().getTime()/1000);
 }
+
+

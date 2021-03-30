@@ -17,21 +17,26 @@ module.exports = async function loginMonopoly(page, orBrowser) {
     // AUTH
     //
     debug(`Логинимся: идем на страницу логина`);
-    await page.goto('https://monopoly-one.com/auth');
     await page.setViewport({ width: helpers.rand(1393, 1500), height: helpers.rand(600, 800) });
+    await page.goto('https://monopoly-one.com/auth');
+    await a.delay(3000);
 
     // wait for page loaded in any state - logged in or logged out
-    await a.delay(8000);
     await a.single([
         a.result(page.waitForSelector('.header-auth')),
         a.result(page.waitForSelector('.HeaderUser-menu-one')),
         a.result(page.waitForSelector('.auth-side'))
-    ], 1)
+    ], 1);
+
+    await page.reload({ waitUntil: ["domcontentloaded"] });
+    await a.delay(4000);
     
 
     debug(`Логинимся: Проверяем, может юзер уже залогинен`);
-    let headerAuthExists = !!(await page.$('.header-auth'))
-    if (! headerAuthExists) {
+
+    let authDone = !!(await page.$('.HeaderUser'))
+  
+    if (authDone) {
         debug('Логинимся: Да, уже был залогинен ранее (используем старую сессию)');
         return page;
     } else {
