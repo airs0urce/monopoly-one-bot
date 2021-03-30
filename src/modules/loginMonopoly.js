@@ -17,11 +17,11 @@ module.exports = async function loginMonopoly(page, orBrowser) {
     // AUTH
     //
     debug(`Логинимся: идем на страницу логина`);
-    await page.goto('https://monopoly-one.com/auth', {referer: 'https://monopoly-one.com/'})
+    await page.goto('https://monopoly-one.com/auth');
     await page.setViewport({ width: helpers.rand(1393, 1500), height: helpers.rand(600, 800) });
 
     // wait for page loaded in any state - logged in or logged out
-    await a.delay(1000);
+    await a.delay(8000);
     await a.single([
         a.result(page.waitForSelector('.header-auth')),
         a.result(page.waitForSelector('.HeaderUser-menu-one')),
