@@ -19,7 +19,10 @@ module.exports = async function loginMonopoly(page, orBrowser) {
     debug(`Логинимся: идем на страницу логина`);
     await page.setViewport({ width: helpers.rand(1393, 1500), height: helpers.rand(600, 800) });
     await page.goto('https://monopoly-one.com/auth');
-    await a.delay(3000);
+    
+    await a.delay(10000);
+    await helpers.waitForCaptcha(page);
+    
 
     // wait for page loaded in any state - logged in or logged out
     await a.single([
