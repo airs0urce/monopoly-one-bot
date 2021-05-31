@@ -23,8 +23,10 @@ const d = require('debug');
 const debug = d(`mon:app`);
 const rimraf = require('rimraf');
 
-const RecaptchaPlugin = require('puppeteer-extra-plugin-recaptcha-2');
 const aplayer = require('play-sound')(opts = {});
+const RecaptchaPluginOrigin = require('puppeteer-extra-plugin-recaptcha');
+
+
 
 let browser;
 
@@ -69,16 +71,28 @@ let browser;
     //     chromeArgs.push(`--disable-extensions-except=${__dirname}/../extension/`);
     //     chromeArgs.push(`--load-extension=${__dirname}/../extension/`);
     // }
-    if (config.auto_captcha_solver) {
-        puppeteer.use(
-            RecaptchaPlugin({
-                provider: {
-                    id: '2captcha',
-                    token: 'b940642def7a66f392ca52e6fa00023c' // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
-                },
-                // visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
-            })
-        );
+    
+    if (config.auto_captcha_solver && config.auto_captcha_solver.enabled) {
+        // puppeteer.use(
+        //     RecaptchaPlugin({
+        //         provider: {
+        //             id: '2captcha',
+        //             token: 'b940642def7a66f392ca52e6fa00023c' // REPLACE THIS WITH YOUR OWN 2CAPTCHA API KEY ⚡
+        //         },
+        //         // visualFeedback: true // colorize reCAPTCHAs (violet = detected, green = solved)
+        //     })
+        // );
+
+        if (config.auto_captcha_solver && config.auto_captcha_solver.enabled) {
+            puppeteer.use(
+                RecaptchaPluginOrigin({
+                    provider: {
+                        id: '2captcha',
+                        token: config.auto_captcha_solver.api_key_2captcha
+                    }
+                })
+            );
+        }
     }
 
     debug('Запускаем браузер');
