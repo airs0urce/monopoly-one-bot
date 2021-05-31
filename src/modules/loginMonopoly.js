@@ -20,6 +20,7 @@ module.exports = async function loginMonopoly(page, orBrowser) {
     await page.setViewport({ width: helpers.rand(1393, 1500), height: helpers.rand(600, 800) });
     await page.goto('https://monopoly-one.com/auth');
     
+    debug(`Ждем 10 секунд, чтобы капча подгрузилась, если она есть`);
     await a.delay(10000);
     await helpers.waitForCaptcha(page);
     
