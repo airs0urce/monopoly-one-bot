@@ -35,9 +35,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         }
     }
 
-    await a.delay(100);
-
-    await a.delay(2000); // This like is to make chrome use less CPU. Can be removed
+    await a.delay(500);
 
 
     await helpers.waitSelectorDisappears(page, 'div.profile.processing');
@@ -96,7 +94,6 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
             debug('ERROR CLICKING VSE BUTTON. Message:' + e.message);
             
             await page.goto(profileUrl + '/inventory');
-            await a.delay(2000); // This like is to make chrome use less CPU. Can be removed
             await page.waitForSelector('.inventory-items .Item');
         }
     } else {
@@ -267,7 +264,6 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         const page2 = await helpers.newPage(page.browser());        
         await page2.goto('https://monopoly-one.com/inventory', {waitUntil: 'domcontentloaded'});
         await helpers.waitForCaptcha(page2);
-        await a.delay(2000); // This like is to make chrome use less CPU. Can be removed
         await page2.close();
 
         console.log('Теперь пробуем предложить обмен еще раз');
