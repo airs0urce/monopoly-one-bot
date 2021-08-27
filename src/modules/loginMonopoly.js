@@ -24,7 +24,13 @@ module.exports = async function loginMonopoly(page, orBrowser) {
     await a.delay(10000);
     await helpers.waitForCaptcha(page);
     
-
+    setTimeout(async () => {
+        const content = await page.evaluate(() => document.body.innerHTML);
+        if (content.includes('Why do I have to complete a CAPTCHA?')) {
+            console.log('Try to solve captcha again');
+            await helpers.waitForCaptcha(page);
+        }
+    }, 10000);
     // wait for page loaded in any state - logged in or logged out
     await a.single([
         a.result(page.waitForSelector('.header-auth')),

@@ -149,7 +149,6 @@ let browser;
         debug(`обработка игроков со стола ${game.title}. Время стола: ${game.timeString}`);
         
         for (let player of game.players) {
-            
             if (handledProfilesCount >= 27) {
                 // add or remove item from market. Ban protection
                 debug(`${handledProfilesCount} профайлов обработано, удаляем\добавляем вещь на маркет, чтобы избежать банов...`);
@@ -157,6 +156,8 @@ let browser;
                 await addOrRemoveFromMarket(page);
                 handledProfilesCount = 0;
             }
+
+            await a.delay(3000); // This like is to make chrome use less CPU. Can be removed
             
 
             if (startFromProfile && player.profile_link != startFromProfile) {
