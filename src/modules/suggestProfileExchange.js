@@ -312,7 +312,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     await a.delay(400);
 
     (await page.$('.trades-main-inventories-one:nth-child(2) ._filter .selecter')).evaluate(async (el) => { 
-        document.querySelector(el).value = 'cards';
+        el.value = 'cards';
     });
     debug('debug new 2');
     await a.delay(300);
@@ -441,7 +441,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
 
     // Filter by "Cases and Sets"
     await (await page.$('.trades-main-inventories-one:nth-child(3) ._filter')).evaluate((el) => { 
-        document.querySelector(el).value = 'containers';
+        el.value = 'containers';
     })
     await a.delay(250);
 
