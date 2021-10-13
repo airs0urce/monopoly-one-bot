@@ -141,7 +141,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
         await page.type('.inventory-marketSell-costs-value input', priceToType, {delay: 60});
         await a.delay(1000);
 
-        await page._cursor.click('.vueDesignDialog-buttons button:nth-child(1)');
+        await page._cursor.click('.dialog-box-buttons button:nth-child(1)');
         await a.delay(2000);
         captchaResult = await helpers.waitForCaptcha(page);
         if (captchaResult.found && ! captchaResult.solved) {
@@ -152,7 +152,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
 
         let finishedPuttingOnMarket = false;
         while (! finishedPuttingOnMarket) {
-            const dialogContent = await page.$('.vueDesignDialog-content')
+            const dialogContent = await page.$('.dialog-box-content')
             if (dialogContent) {
                 const text = await dialogContent.evaluate(async (el) => {
                     return el.innerText
