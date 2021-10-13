@@ -310,8 +310,9 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
 
     debug('debug new 1');
     await a.delay(400);
-    (await page.$('.trades-main-inventories-one:nth-child(2) ._filter [design-selecter-value="cards"]')).evaluate(async (el) => { 
-        el.click();
+
+    (await page.$('.trades-main-inventories-one:nth-child(2) ._filter .selecter')).evaluate(async (el) => { 
+        document.querySelector(el).value = 'cards';
     });
     debug('debug new 2');
     await a.delay(300);
@@ -439,7 +440,9 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     debug(`${profileName}: у него всего ${hisItemsAll.length} предметов`);
 
     // Filter by "Cases and Sets"
-    await (await page.$('.trades-main-inventories-one:nth-child(3) ._filter [design-selecter-value="containers"]')).evaluate((el) => { el.click() })
+    await (await page.$('.trades-main-inventories-one:nth-child(3) ._filter')).evaluate((el) => { 
+        document.querySelector(el).value = 'containers';
+    })
     await a.delay(250);
 
     // get only cases and sets of another user
