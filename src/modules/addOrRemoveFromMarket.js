@@ -61,7 +61,7 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
 
         let finishedRemoving = false;
         while (! finishedRemoving) {
-            const dialogContent = await page.$('.vueDesignDialog-title')
+            const dialogContent = await page.$('.dialog-box-title')
             if (dialogContent) {
                 const text = await dialogContent.evaluate(async (el) => {
                     return el.innerText

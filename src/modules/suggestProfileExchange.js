@@ -229,11 +229,11 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         page.waitForSelector('div.trades').then(() => {
             return helpers.waitSelectorDisappears(page, 'div.trades.processing');
         }),
-        page.waitForSelector('.vueDesignDialog-title')
+        page.waitForSelector('.dialog-box-title')
     ]);
     
     debug('dialog debug 1');
-    const dialog = await page.$('.vueDesignDialog-title');
+    const dialog = await page.$('.dialog-box-title');
     if (dialog) {
         debug('dialog debug 2');
         const restricted = (dialog).evaluate((el) => { return el.innerText.includes('Вы не можете предложить обмен этому игроку') });
@@ -670,8 +670,8 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
         return res;
     }
 
-    await page.waitForSelector('.vueDesignDialog-title');
-    const dialogTitle = await (await page.$('.vueDesignDialog-title')).evaluate(async (el) => {
+    await page.waitForSelector('.dialog-box-title');
+    const dialogTitle = await (await page.$('.dialog-box-title')).evaluate(async (el) => {
         return el.innerText;
     });
 
