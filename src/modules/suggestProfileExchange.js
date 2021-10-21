@@ -313,6 +313,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
 
     (await page.$('.trades-main-inventories-one:nth-child(2) ._filter .selecter')).evaluate(async (el) => { 
         el.value = 'cards';
+        el.dispatchEvent(new Event('change', { 'bubbles': true }))
     });
     debug('debug new 2');
     await a.delay(300);
@@ -442,6 +443,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
     // Filter by "Cases and Sets"
     await (await page.$('.trades-main-inventories-one:nth-child(3) ._filter')).evaluate((el) => { 
         el.value = 'containers';
+        el.dispatchEvent(new Event('change', { 'bubbles': true }))
     })
     await a.delay(250);
 

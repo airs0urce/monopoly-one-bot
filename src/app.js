@@ -116,7 +116,8 @@ let browser;
     // await addOrRemoveFromMarket(null, browser);
     // await a.delay(2000000);    
 
-// await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1832404');
+
+// await suggestProfileExchange(page, 'https://monopoly-one.com/profile/krlska');
 // await a.delay(1043434343);
 
 
