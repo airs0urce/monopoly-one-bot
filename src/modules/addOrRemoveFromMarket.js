@@ -152,12 +152,12 @@ module.exports = async function addOrRemoveFromMarket(page, orBrowser, precheckC
 
         let finishedPuttingOnMarket = false;
         while (! finishedPuttingOnMarket) {
-            const dialogContent = await page.$('.dialog-box-content')
+            const dialogContent = await page.$('.dialog-box-text')
             if (dialogContent) {
                 const text = await dialogContent.evaluate(async (el) => {
                     return el.innerText
                 });
-                if (text.includes('Предмет успешно выставлен на продажу')) {
+                if (text.includes('Предмет успешно выставлен на продажу на Маркет')) {
                     finishedPuttingOnMarket = true;
                 }
             }
