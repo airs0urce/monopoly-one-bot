@@ -116,12 +116,11 @@ let browser;
     // await addOrRemoveFromMarket(null, browser);
     // await a.delay(2000000);    
 
-    // await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1877426');
-    // await a.delay(1043434343);
+// await suggestProfileExchange(page, 'https://monopoly-one.com/profile/1832404');
+// await a.delay(1043434343);
 
 
     const alreadySuggestedItems = await getAlreadySuggestedItems(page);
-   
     // add items to globals
     for (let alreadySuggestedItem of alreadySuggestedItems) {
 

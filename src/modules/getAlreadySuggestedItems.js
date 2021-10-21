@@ -57,37 +57,39 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
 
         const resp = await response.json();
 
-        let profileId;
-        try {
-            profileId = resp.data.trades[0].user_id_to;
-        } catch (e) {
-            console.log('PROBLEM WITH response from trades.getOutbound');
-            console.log('Error:', e.message);
-            console.log(resp);
-            return;
-        }
-        const profileUrl = 'https://monopoly-one.com/profile/' + resp.data.trades[0].user_id_to;
-        const profileName = getUserDataById(resp, profileId).nick;
-
-        const itemsForSellList = [];  
-        
-        for (let trade of resp.data.trades) {
-            for (let thingFrom of trade.things_from) {
-                itemsUsed[thingFrom.thing_id] = true;
-                itemsForSellList.push({
-                    id: thingFrom.thing_id,
-                    name: thingFrom.title,
-                    imageUrl: thingFrom.image,
-                });
+        if (resp.data.trades.lengtj > 0) {
+            let profileId;
+            try {
+                profileId = resp.data.trades[0].user_id_to;
+            } catch (e) {
+                console.log('PROBLEM WITH response from trades.getOutbound');
+                console.log('Error:', e.message);
+                console.log(resp);
+                return;
             }
-        }
+            const profileUrl = 'https://monopoly-one.com/profile/' + resp.data.trades[0].user_id_to;
+            const profileName = getUserDataById(resp, profileId).nick;
 
-        results.push({
-            profileUrl: profileUrl,
-            profileId: profileId,
-            profileName: profileName,
-            items: itemsForSellList,
-        });
+            const itemsForSellList = [];  
+            
+            for (let trade of resp.data.trades) {
+                for (let thingFrom of trade.things_from) {
+                    itemsUsed[thingFrom.thing_id] = true;
+                    itemsForSellList.push({
+                        id: thingFrom.thing_id,
+                        name: thingFrom.title,
+                        imageUrl: thingFrom.image,
+                    });
+                }
+            }
+
+            results.push({
+                profileUrl: profileUrl,
+                profileId: profileId,
+                profileName: profileName,
+                items: itemsForSellList,
+            });
+        }
     }
 
     page.on('response', getOutboundHandler);

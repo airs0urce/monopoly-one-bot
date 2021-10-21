@@ -604,7 +604,7 @@ module.exports = async function suggestProfileExchange(page, profileUrl, prechec
             if (mySuggestedCards.includes(myItemSuggest.name)) {
                 continue;
             }
-            debug(`${profileName}: кликаем свою карточку ${myItemSuggest.name}`);
+            debug(`${profileName}: кликаем свою карточку ${myItemSuggest.name}`);           
             await clickMyCard(myItemSuggest, page);
             globals.addItem('USED_ITEMS', myItemSuggest.id);
             mySuggestedCards.push(myItemSuggest.name);
@@ -715,9 +715,9 @@ async function showAllItems(page, debug) {
     debug('Жмем "показать еще" чтобы появились все вещи на странице');
     while (!!(await page.$('.VueLoadBlock-block'))) {
         await page.click('.VueLoadBlock-block');
-        await a.delay(10)
+        await a.delay(40);
         await helpers.scrollPageToBottom(page);
-        await a.delay(1)
+        await a.delay(5);
     }
     debug('Закончили, все вещи показаны');
 }
