@@ -57,7 +57,7 @@ module.exports = async function getAlreadySuggestedItems(page, orBrowser) {
 
         const resp = await response.json();
 
-        if (resp.data.trades.lengtj > 0) {
+        if (resp.data.trades.length > 0) {
             let profileId;
             try {
                 profileId = resp.data.trades[0].user_id_to;
